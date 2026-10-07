@@ -108,11 +108,11 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
 .console{grid-area:console;display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;min-height:0}
 .meter-wrap{position:relative;min-height:236px}
 .meter.abs{position:absolute;inset:0}
-.console-right{display:grid;gap:8px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr);grid-template-areas:"read" "heard" "drone" "cards" "btns"}
-.console-right .readout{grid-area:read}.heard-row{grid-area:heard}.drone-line{grid-area:drone}.cards{grid-area:cards}.btns{grid-area:btns}
+.console-right{display:grid;gap:8px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr);grid-template-areas:"read" "heard" "drone" "cards" "mini" "btns"}
+.console-right .readout{grid-area:read}.heard-row{grid-area:heard}.drone-line{grid-area:drone}.cards{grid-area:cards}.mini{grid-area:mini}.btns{grid-area:btns}
 @media (min-width:900px) and (min-height:541px){
   .console{grid-template-columns:110px minmax(0,1fr);max-width:1100px;width:100%;justify-self:center}
-  .console-right{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;grid-template-areas:"read cards" "heard cards" "drone btns"}
+  .console-right{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;grid-template-areas:"read cards" "heard cards" "drone mini" ". btns"}
 }
 .console .phon{font-size:36px}
 .heard-row{display:flex;align-items:center;gap:8px;min-height:30px;flex-wrap:wrap}
@@ -121,7 +121,7 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
 .drone-line.on{color:var(--gold);font-weight:700}
 .drone-line.warn{color:var(--seal)}
 .cards{display:grid;gap:6px}
-.card{display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:5px 10px;border:1.5px solid var(--ink-faint);border-radius:var(--r);transition:border-color .15s}
+.card{font:inherit;color:inherit;text-align:left;background:transparent;width:100%;cursor:pointer;display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:5px 10px;border:1.5px solid var(--ink-faint);border-radius:var(--r);transition:border-color .15s}
 .card.afford{border-color:var(--ink)}
 .card svg{width:16px;height:16px;display:block}
 .card .uname{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -137,6 +137,12 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
 .chip small{font-size:10px;color:var(--ink-soft)}
 .chip.hit{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .chip.hit small{color:var(--paper)}
+.chip.play{background:var(--gold);color:var(--paper);border-color:var(--gold)}
+.chip.play small{color:var(--paper)}
+.card:hover{background:var(--paper-deep)}
+.mini{font-size:12px;color:var(--ink-soft);margin:0}
+.vol-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vol-row input{flex:1 1 160px;max-width:260px;accent-color:var(--seal)}
 .chip.ghost{border-style:dashed;color:var(--ink-faint)}
 .btns{gap:8px}
 .pad{grid-area:pad;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
@@ -178,9 +184,10 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
     <div class="setup-grid">
       <section class="panel">
         <h2><span class="step">01</span>Microphone</h2>
-        <p class="note">Headphones give the cleanest result. Sound from a speaker can reach the mic.</p>
+        <p class="note">Headphones give the cleanest result. Sound from a speaker can reach the mic, and phones often play the game quietly once the mic is on.</p>
         <div class="row"><button id="micBtn" class="btn primary">Start microphone</button></div>
         <p id="micStatus" class="status">Microphone off.</p>
+        <div class="vol-row"><label class="note" for="vol">Game volume</label><input type="range" id="vol" min="0.5" max="4" step="0.1"><span class="kv note" id="volOut"></span></div>
       </section>
 
       <section class="panel">
@@ -216,6 +223,7 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
     <section class="panel">
       <h2>How floor 1 works</h2>
       <ul class="howto" id="howto"></ul>
+      <div class="row" id="songRow"><span class="lbl">Hear a summon song</span></div>
     </section>
 
     <div class="start-row">
@@ -246,6 +254,7 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
       <div class="heard-row"><span class="lbl">Heard</span><span class="heard" id="heard"></span></div>
       <div class="drone-line" id="droneLine"></div>
       <div class="cards" id="cards"></div>
+      <p class="mini">Tap a unit to hear its summon song.</p>
       <div class="row btns"><button id="refBtn" class="btn seal small">Reference</button><button id="padToggle" class="btn small">Tap pad</button><button id="setupBtn" class="btn small">Setup</button></div>
     </div>
   </div>
@@ -327,6 +336,7 @@ const S = {
   trans: 'C',
   home: 48,                              // concert MIDI of home 1
   bleedRms: store.get('bleedRms', null), // null = speaker check not run
+  vol: store.get('vol', 1.8),            // game volume (master gain into a limiter)
   mic: false,
 };
 
@@ -361,7 +371,9 @@ const REF = { until: 0, pc: FLOOR.tonicPc };
 function ensureAudio() {
   if (!AC) {
     AC = new (window.AudioContext || window.webkitAudioContext)();
-    master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination);
+    const lim = AC.createDynamicsCompressor();
+    lim.threshold.value = -10; lim.knee.value = 8; lim.ratio.value = 10; lim.attack.value = 0.003; lim.release.value = 0.2;
+    master = AC.createGain(); master.gain.value = S.vol; master.connect(lim); lim.connect(AC.destination);
     noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * 0.5), AC.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   }
@@ -373,8 +385,8 @@ function playRef() {
   ensureAudio();
   const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
   o.type = 'sine'; o.frequency.value = refHz();
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32, t + 0.04);
-  g.gain.setValueAtTime(0.32, t + 1.1); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.5);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.04);
+  g.gain.setValueAtTime(0.5, t + 1.1); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.5);
   o.connect(g).connect(master); o.start(t); o.stop(t + 1.55);
   REF.until = now() + 1550 + 150; REF.pc = FLOOR.tonicPc;
 }
@@ -388,11 +400,33 @@ function noise(dur, freq, q, vol, type) {
   s.connect(f).connect(g).connect(master); s.start(t); s.stop(t + dur + 0.02);
 }
 const sfx = {
-  hit:    () => noise(0.06, 2200, 1.4, 0.10),
-  base:   () => noise(0.25, 180, 0.7, 0.32, 'lowpass'),
-  summon: () => noise(0.35, 900, 0.5, 0.20),
-  fail:   () => noise(0.14, 420, 2.0, 0.12),
+  hit:    () => noise(0.06, 2200, 1.4, 0.16),
+  base:   () => noise(0.25, 180, 0.7, 0.5, 'lowpass'),
+  summon: () => noise(0.35, 900, 0.5, 0.3),
+  fail:   () => noise(0.14, 420, 2.0, 0.2),
 };
+// A unit's summon song: its motif sung at your home-1 pitches. The mic is muted while it plays.
+let songTimers = [];
+function playSong(k, onStep) {
+  ensureAudio();
+  songTimers.forEach(clearTimeout); songTimers = [];
+  const notes = U[k].motif.map(d => S.home + FLOOR.steps[d]);
+  const dur = 0.42, gap = 0.1, t0 = AC.currentTime + 0.05;
+  notes.forEach((m, i) => {
+    const t = t0 + i * (dur + gap), hz = midiToHz(m);
+    const o = AC.createOscillator(), o2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain();
+    o.type = 'sawtooth'; o.frequency.value = hz; o2.type = 'sine'; o2.frequency.value = hz * 2;
+    f.type = 'lowpass'; f.frequency.value = Math.min(5000, hz * 7); f.Q.value = 0.8;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t + 0.03);
+    g.gain.setValueAtTime(0.3, t + dur - 0.07); g.gain.linearRampToValueAtTime(0, t + dur);
+    o.connect(f); o2.connect(f); f.connect(g).connect(master);
+    o.start(t); o2.start(t); o.stop(t + dur + 0.02); o2.stop(t + dur + 0.02);
+    songTimers.push(setTimeout(() => onStep && onStep(i), (i * (dur + gap) + 0.05) * 1000));
+  });
+  const total = (notes.length * (dur + gap) + 0.05) * 1000;
+  IN.muteUntil = now() + total + 250;
+  songTimers.push(setTimeout(() => onStep && onStep(-1), total));
+}
 function padTone(midi) {
   ensureAudio();
   let m = midi; while (midiToHz(m) < 130) m += 12;
@@ -437,8 +471,8 @@ class Detector {
 }
 
 /* ================= Note tracking ================= */
-const MIN_NOTE_MS = 80, RELEASE_MS = 90, DRONE_MS = 650, GAP_MS = 1400, CLARITY = 0.85;
-const IN = { cur: null, cand: null, candSince: 0, lostSince: 0, padUntil: 0, nf: 0.003, last: { midiF: null, rms: 0 }, disp: null, dispAlpha: 0 };
+const MIN_NOTE_MS = 80, RELEASE_MS = 90, DRONE_MS = 1000, GAP_MS = 1800, MOTIF_MIN_MS = 150, CLARITY = 0.85;
+const IN = { cur: null, cand: null, candSince: 0, lostSince: 0, padUntil: 0, muteUntil: 0, nf: 0.003, last: { midiF: null, rms: 0 }, disp: null, dispAlpha: 0 };
 const onNoteOn = [], onNoteOff = [];
 const emitOn = (n, t) => onNoteOn.forEach(f => f(n, t));
 const emitOff = (n, t) => onNoteOff.forEach(f => f(n, t));
@@ -493,6 +527,7 @@ function micFrame(t) {
   if (midiF != null && t < REF.until && mod(Math.round(midiF), 12) === REF.pc && (S.bleedRms == null || r.rms < S.bleedRms * 1.8)) midiF = null;
   IN.last.rms = r.rms;
   if ((IN.cur && IN.cur.pad) || t < IN.padUntil) return;
+  if (t < IN.muteUntil) { IN.last.midiF = null; feedMic(null, t); return; }
   IN.last.midiF = midiF;
   feedMic(midiF, t);
 }
@@ -528,7 +563,7 @@ function newGame() {
         units: [], proj: [], fx: [], motif: [], motifT: 0, foeMana: 20, nextPick: 'inf', spawnQueue: [], wave: 1,
         drone: null, id: 1, stats: { summoned: 0, manaEarned: 0, accSum: 0, accT: 0, refs: 0 } };
 }
-const accuracy = cAbs => cAbs <= 10 ? 1 : clamp(1 - (cAbs - 10) / 50 * 0.7, 0.3, 1);
+const accuracy = cAbs => cAbs <= 20 ? 1 : clamp(1 - (cAbs - 20) / 40 * 0.6, 0.4, 1);
 
 function spawn(side, type) {
   const d = U[type];
@@ -564,6 +599,7 @@ function splat(x, y, color, n) {
 function update(dt) {
   G.t += dt;
   const c = IN.cur;
+  if (c && !c.committed && now() - c.start >= MOTIF_MIN_MS) { c.committed = true; motifNote(c, c.start); }
   if (c && !c.drone && now() - c.start >= DRONE_MS) { c.drone = true; onDroneStart(c); }
   if (c && c.drone) {
     const info = noteInfo(c.midi);
@@ -574,7 +610,7 @@ function update(dt) {
       G.drone = { deg: info.deg, rate, acc, ok: true };
     } else G.drone = { ok: false, below: info.oct < 0 };
   } else G.drone = null;
-  if (G.motif.length && now() - G.motifT > GAP_MS) G.motif = [];
+  if (G.motif.length && now() - G.motifT > GAP_MS + MOTIF_MIN_MS + 80) { G.motif = []; hint('Too long between notes. Keep each gap under about 2 seconds.'); }
   enemyTick(dt);
 
   for (const u of G.units) {
@@ -624,32 +660,43 @@ function prefixOk(m, buf) {
   for (let i = 0; i < buf.length; i++) if (buf[i].oct !== 0 || buf[i].deg !== m[i]) return false;
   return true;
 }
+let lastHint = 0;
+function hint(msg) { const t = now(); if (t - lastHint > 2500) { lastHint = t; toast(msg); } }
+const label = info => pretty(info.name) + info.octNum + ' (' + info.phon + ')';
 function motifNote(n, t) {
+  if (!G || !G.running || G.over) return;
   const info = noteInfo(n.midi);
   if (G.motif.length && t - G.motifT > GAP_MS) G.motif = [];
-  if (info.oct < 0) { if (G.motif.length) toast('Below your home 1'); G.motif = []; return; }
-  if (info.deg < 0) { if (G.motif.length) toast(pretty(info.name) + ' (' + info.phon + ') is out of key'); G.motif = []; return; }
+  if (info.oct < 0) { hint(label(info) + ' is below your home 1, ' + label(noteInfo(S.home)) + '.'); G.motif = []; return; }
+  if (info.deg < 0) { if (G.motif.length) hint(label(info) + ' is out of key, so the motif restarts.'); G.motif = []; return; }
   const isHome = info.deg === 0 && info.oct === 0;
-  if (!G.motif.length && !isHome) return;   // motifs start on home 1; other notes are free to drone
+  if (!G.motif.length && !isHome) {         // motifs start on home 1; other notes are free to drone
+    if (info.deg === 0) hint('Motifs start on your home 1, ' + label(noteInfo(S.home)) + '. That was ' + label(info) + '.');
+    return;
+  }
   G.motif.push({ deg: info.deg, oct: info.oct, n }); G.motifT = t;
   const cands = ORDER.filter(k => prefixOk(U[k].motif, G.motif));
   if (!cands.length) {
-    if (isHome) G.motif = [G.motif[G.motif.length - 1]];
-    else { G.motif = []; toast('No motif goes that way'); }
+    const prev = G.motif.slice(0, -1);
+    const opts = ORDER.filter(k => prefixOk(U[k].motif, prev)).map(k => (U[k].motif[prev.length] + 1) + ' for ' + U[k].name);
+    if (!isHome && prev.length) hint('After ' + prev.map(m => m.deg + 1).join('-') + ', sing ' + opts.join(' or ') + '.');
+    G.motif = isHome ? [G.motif[G.motif.length - 1]] : [];
     return;
   }
   const full = cands.find(k => U[k].motif.length === G.motif.length);
   if (full) { trySummon(full); G.motif = []; }
 }
 function onDroneStart(n) {
-  if (G && G.motif.length && G.motif[G.motif.length - 1].n === n) G.motif = [];
+  if (G && G.motif.length && G.motif[G.motif.length - 1].n === n) {
+    if (G.motif.length >= 2) hint('That note was held long enough to become a drone, so the motif restarts.');
+    G.motif = [];
+  }
 }
 function trySummon(k) {
   const d = U[k];
   if (G.mana < d.cost) { toast(d.name + ' needs ' + d.cost + ' mana. Drone 1 to earn more.'); sfx.fail(); pulseCard(k, 'fail'); return; }
   G.mana -= d.cost; spawn(0, k); G.stats.summoned++; sfx.summon(); pulseCard(k, 'ok'); toast(d.name + ' summoned');
 }
-onNoteOn.push((n, t) => { if (screen === 'battle' && G && G.running && !G.over) motifNote(n, t); });
 
 function endGame(won) {
   G.over = true; G.running = false;
@@ -850,8 +897,8 @@ function chipHTML(d, cls) { return '<span class="chip ' + (cls || '') + '"><b>' 
 function buildCards() {
   $('#cards').innerHTML = ORDER.map(k => {
     const u = U[k];
-    return '<div class="card" data-u="' + k + '" style="color:inherit"><span style="color:' + COL.seal + '">' + ICON[k] + '</span><span class="uname">' + u.name +
-      '</span><span class="chips">' + u.motif.map(d => chipHTML(d)).join('') + '</span><span class="cost kv">' + u.cost + '</span></div>';
+    return '<button type="button" class="card" data-u="' + k + '" aria-label="Hear the ' + u.name + ' summon song"><span style="color:' + COL.seal + '">' + ICON[k] + '</span><span class="uname">' + u.name +
+      '</span><span class="chips">' + u.motif.map(d => chipHTML(d)).join('') + '</span><span class="cost kv">' + u.cost + '</span></button>';
   }).join('');
 }
 function buildPad() {
@@ -913,8 +960,8 @@ function refreshLabels() {
   $('#refSetupBtn').textContent = 'Play reference · ' + phonetic(spellDegree(0));
   const n = d => '<b>' + U[d].motif.map(x => x + 1).join('-') + '</b>';
   $('#howto').innerHTML = [
-    '<b>Drone</b> by holding any note for about two thirds of a second. Droning 1 earns 10 mana a second and other degrees earn 4. Staying in tune keeps the full rate.',
-    '<b>Summon</b> with three short notes that start on your home 1 (' + homeI.phon + '): ' + n('inf') + ' Infantry (30), ' + n('rng') + ' Ranged (45), ' + n('hvy') + ' Heavy (70). Leave less than about 1.4 seconds between notes.',
+    '<b>Drone</b> by holding any note for about a second. Droning 1 earns 10 mana a second and other degrees earn 4. Staying in tune keeps the full rate.',
+    '<b>Summon</b> with three short notes that start on your home 1 (' + homeI.phon + '): ' + n('inf') + ' Infantry (30), ' + n('rng') + ' Ranged (45), ' + n('hvy') + ' Heavy (70). Keep each note shorter than a second and leave less than about 2 seconds between notes.',
     '<b>Reference</b> plays home 1 whenever you press it.',
     '<b>Win</b> by breaking the enemy gate before they break yours. A wave arrives every 50 seconds.',
   ].map(s => '<li>' + s + '</li>').join('');
@@ -923,6 +970,17 @@ function refreshLabels() {
 refreshLabels();
 if (S.bleedRms != null) $('#bleedStatus').textContent = S.bleedRms > 0 ? 'Last check: the mic heard the speaker. The game ignores its own reference while it plays.' : 'Last check: the mic barely heard the speaker.';
 
+$('#songRow').insertAdjacentHTML('beforeend', ORDER.map(k => '<button type="button" class="btn small" data-song="' + k + '">' + U[k].name + ' · ' + U[k].motif.map(d => d + 1).join('-') + '</button>').join(''));
+$('#songRow').addEventListener('click', e => { const b = e.target.closest('[data-song]'); if (b) playSong(b.dataset.song); });
+$('#cards').addEventListener('click', e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const chips = card.querySelectorAll('.chip');
+  playSong(card.dataset.u, i => chips.forEach((ch, j) => ch.classList.toggle('play', j === i)));
+});
+const volEl = $('#vol');
+const showVol = () => { $('#volOut').textContent = Math.round(S.vol / 1.8 * 100) + '%'; };
+volEl.value = S.vol; showVol();
+volEl.addEventListener('input', () => { S.vol = +volEl.value; if (master) master.gain.value = S.vol; store.set('vol', S.vol); showVol(); });
 sel.addEventListener('change', () => { resumable = false; $('#enterBtn').textContent = 'Enter battle'; applyPreset(sel.value, false); store.set('preset', S.preset); store.set('low', S.low); refreshLabels(); });
 
 $('#micBtn').addEventListener('click', async () => {
@@ -930,6 +988,7 @@ $('#micBtn').addEventListener('click', async () => {
   try {
     ensureAudio();
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw Object.assign(new Error('nomedia'), { name: 'NoMedia' });
+    try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch (_) {}
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     detector = new Detector(AC, stream); S.mic = true;
     st.className = 'status good'; st.textContent = 'Microphone on. Sing or play a note.';
