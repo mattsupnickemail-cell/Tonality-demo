@@ -1,41 +1,57 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-style="ink">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tonality Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&family=Lilita+One&family=Syne:wght@700;800&display=swap">
 <style>
-/* Layout: a one-screen ink scroll. Battlefield lane on top, instrument console (mode meter, tuner, motif cards) below, tap pad along the bottom. One paper-and-ink look, chosen on purpose (Okami lean). */
+/* Layout: one-screen battle. Lane on top, instrument console (mode meter, tuner, motif cards) below, tap pad along the bottom.
+   Three switchable looks, each a complete token set: Ink (Okami), Silhouette (Patapon), Overtone (night, notes as light). */
 :root{
-  --paper:#E7E2D6;
-  --paper-deep:#D8D1C1;
-  --ink:#1C1915;
-  --ink-soft:#575148;
-  --ink-faint:#9C9486;
-  --seal:#B5381F;     /* you */
-  --indigo:#2B3B63;   /* enemy */
-  --gold:#9A7414;     /* mana */
-  --oct0:#2E6B5A;     /* octave colors on the meter */
-  --oct1:#B0631C;
-  --oct2:#6B3A7A;
+  --paper:#E7E2D6; --paper-deep:#D8D1C1; --ink:#1C1915; --ink-soft:#575148; --ink-faint:#9C9486;
+  --seal:#B5381F;   /* you */
+  --indigo:#2B3B63; /* enemy */
+  --gold:#9A7414;   /* mana */
+  --oct0:#2E6B5A; --oct1:#B0631C; --oct2:#6B3A7A;
+  --sky1:#E7E2D6; --sky2:#DCD5C6; --ground:#1C1915;
   --scrim:rgba(28,25,21,.5);
-  --font-display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
+  --font-display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",Georgia,serif; --dw:800;
   --font-body:"Zen Kaku Gothic New",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
-  --r:6px;
+  --r:6px; --bw:1.5px;
   color-scheme:light;
+}
+:root[data-style="silhouette"]{
+  --paper:#FFF3D6; --paper-deep:#F7E2B2; --ink:#141414; --ink-soft:#4C4336; --ink-faint:#A99A7C;
+  --seal:#D7263D; --indigo:#0F7B7B; --gold:#C77A00;
+  --oct0:#21925A; --oct1:#E0630B; --oct2:#8E3BB5;
+  --sky1:#FFEFB3; --sky2:#F6994A; --ground:#141414;
+  --scrim:rgba(20,20,20,.55);
+  --font-display:"Lilita One","Arial Rounded MT Bold",system-ui,sans-serif; --dw:400;
+  --r:12px; --bw:2.5px;
+  color-scheme:light;
+}
+:root[data-style="overtone"]{
+  --paper:#0F0C22; --paper-deep:#1C1740; --ink:#EEE9FF; --ink-soft:#ABA2D6; --ink-faint:#5E5690;
+  --seal:#FF5C8A; --indigo:#38D6F2; --gold:#FFC857;
+  --oct0:#5CF2B0; --oct1:#FFC857; --oct2:#C77DFF;
+  --sky1:#0B0919; --sky2:#2A1E58; --ground:#8B7BFF;
+  --scrim:rgba(5,4,15,.72);
+  --font-display:"Syne",system-ui,sans-serif; --dw:800;
+  --r:4px; --bw:1px;
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
 body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--font-body);-webkit-text-size-adjust:100%;overflow:hidden;
-  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);transition:background .25s,color .25s}
 button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,select:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
-.btn{border:1.5px solid var(--ink);background:transparent;border-radius:var(--r);padding:.5em 1em;font-weight:500;line-height:1.3}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.btn{border:var(--bw) solid var(--ink);background:transparent;border-radius:var(--r);padding:.5em 1em;font-weight:500;line-height:1.3}
 .btn:hover:not(:disabled){background:var(--paper-deep)}
 .btn.primary{background:var(--ink);color:var(--paper)}
 .btn.primary:hover:not(:disabled){background:var(--ink-soft)}
@@ -46,33 +62,46 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--seal);outline-
 .kv{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+:root[data-style="overtone"] .btn.primary{box-shadow:0 0 18px -4px var(--seal)}
+
+/* style picker */
+.style-pick{display:inline-flex;border:var(--bw) solid var(--ink);border-radius:var(--r);overflow:hidden;max-width:100%}
+.style-pick button{border:0;background:transparent;padding:.42em .95em;font-size:14px;font-weight:700;white-space:nowrap}
+.style-pick button+button{border-left:var(--bw) solid var(--ink)}
+.style-pick button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.style-desc{font-size:13.5px;color:var(--ink-soft);margin:0}
 
 /* ---------- setup ---------- */
 #setup{height:100%;overflow-y:auto;padding-inline:16px;padding-block:28px 48px}
 .setup-inner{max-width:900px;margin:0 auto;display:grid;gap:26px}
 .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--seal);font-weight:700;margin:0}
-.title-row h1{font-family:var(--font-display);font-weight:800;font-size:clamp(32px,6.5vw,52px);line-height:1.05;margin:.15em 0 0;text-wrap:balance}
-.title-row p.lede{margin:.5em 0 0;color:var(--ink-soft);max-width:60ch}
+.title-row{display:grid;gap:10px}
+.title-row h1{font-family:var(--font-display);font-weight:var(--dw);font-size:clamp(34px,7vw,56px);line-height:1.02;margin:0;text-wrap:balance}
+.title-row p.lede{margin:0;color:var(--ink-soft);max-width:60ch}
 .setup-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px 28px}
 @media (max-width:720px){.setup-grid{grid-template-columns:minmax(0,1fr)}}
 .panel{border-top:2px solid var(--ink);padding-top:12px;display:grid;gap:10px;align-content:start;min-width:0}
-.panel h2{font-family:var(--font-display);font-size:21px;margin:0;font-weight:700;display:flex;align-items:baseline;gap:.5em}
+.panel h2{font-family:var(--font-display);font-size:21px;margin:0;font-weight:var(--dw);display:flex;align-items:baseline;gap:.5em}
 .step{font-family:var(--font-mono);font-size:12px;color:var(--seal);font-weight:500}
 .note{color:var(--ink-soft);font-size:13.5px;margin:0;max-width:62ch}
 .status{font-size:14px;margin:0;min-height:1.5em}
 .status.bad{color:var(--seal)}
 .status.good{color:var(--oct0)}
-select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radius:var(--r);background:var(--paper);color:var(--ink);max-width:100%;width:100%}
+select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-radius:var(--r);background:var(--paper);color:var(--ink);max-width:100%;width:100%}
 .howto{margin:0;padding-left:1.15em;display:grid;gap:6px;color:var(--ink-soft);font-size:14.5px;max-width:70ch}
 .howto b{color:var(--ink)}
 .start-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;border-top:2px solid var(--ink);padding-top:18px}
 .instrument{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:stretch}
 .meter{display:block;width:100%;height:100%}
 .meter.tall{height:280px}
+.vol-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vol-row input[type=range]{flex:1 1 160px;max-width:260px;accent-color:var(--seal)}
+.check{display:flex;align-items:center;gap:8px;font-size:14px}
+.check input{accent-color:var(--seal);width:18px;height:18px}
 
 /* readout (shared) */
 .readout{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:4px;align-content:start;min-width:0}
-.phon{font-family:var(--font-display);font-weight:800;font-size:44px;line-height:1;grid-row:span 2;min-width:2.2em}
+.phon{font-family:var(--font-display);font-weight:var(--dw);font-size:44px;line-height:1;grid-row:span 2;min-width:2.2em}
 .nm{font-size:13px;color:var(--ink-soft);align-self:end}
 .deg{font-size:13px;color:var(--ink-soft);align-self:start}
 .tuner{grid-column:1/-1;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(5px);transition:opacity .12s,transform .12s}
@@ -93,35 +122,40 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
 .gate{display:grid;gap:3px;min-width:0}
 .gate .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gate.foe{text-align:right}
-.bar{height:9px;border:1.5px solid var(--ink);border-radius:2px;overflow:hidden;background:var(--paper-deep)}
+.bar{height:9px;border:var(--bw) solid var(--ink);border-radius:calc(var(--r)/3);overflow:hidden;background:var(--paper-deep)}
 .bar i{display:block;height:100%;width:100%;background:var(--seal);transform-origin:left center}
 .gate.foe .bar i{background:var(--indigo);transform-origin:right center}
 .mana{display:grid;justify-items:center;gap:3px;min-width:88px}
 .mana-num{font-family:var(--font-mono);font-size:21px;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
 .mana .bar{width:88px;height:6px;border-width:1px}
 .mana .bar i{background:var(--gold)}
-.lane-wrap{grid-area:lane;position:relative;min-height:0;border:1.5px solid var(--ink);border-radius:2px;overflow:hidden;background:var(--paper)}
+.lane-wrap{grid-area:lane;position:relative;min-height:0;border:var(--bw) solid var(--ink);border-radius:calc(var(--r)/2);overflow:hidden;background:var(--paper)}
+:root[data-style="overtone"] .lane-wrap{border-color:var(--ink-faint)}
 #lane{position:absolute;inset:0;width:100%;height:100%;display:block}
-.toast{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:13.5px;background:var(--ink);color:var(--paper);padding:.28em .8em;border-radius:3px;
+.toast{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:13.5px;background:var(--ink);color:var(--paper);padding:.28em .8em;border-radius:calc(var(--r)/2);
   opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis}
 .toast.on{opacity:1}
 .console{grid-area:console;display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;min-height:0}
-.meter-wrap{position:relative;min-height:236px}
+.meter-wrap{position:relative;min-height:244px}
 .meter.abs{position:absolute;inset:0}
-.console-right{display:grid;gap:8px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr);grid-template-areas:"read" "heard" "drone" "cards" "mini" "btns"}
-.console-right .readout{grid-area:read}.heard-row{grid-area:heard}.drone-line{grid-area:drone}.cards{grid-area:cards}.mini{grid-area:mini}.btns{grid-area:btns}
+.console-right{display:grid;gap:7px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr);grid-template-areas:"read" "heard" "trail" "drone" "cards" "mini" "btns"}
+.console-right .readout{grid-area:read}.heard-row{grid-area:heard}.trail{grid-area:trail}.drone-line{grid-area:drone}.cards{grid-area:cards}.mini{grid-area:mini}.btns{grid-area:btns}
 @media (min-width:900px) and (min-height:541px){
   .console{grid-template-columns:110px minmax(0,1fr);max-width:1100px;width:100%;justify-self:center}
-  .console-right{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;grid-template-areas:"read cards" "heard cards" "drone mini" ". btns"}
+  .console-right{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;grid-template-areas:"read cards" "heard cards" "trail cards" "drone mini" ". btns"}
 }
 .console .phon{font-size:36px}
 .heard-row{display:flex;align-items:center;gap:8px;min-height:30px;flex-wrap:wrap}
 .heard{display:flex;gap:4px}
+.trail{font-size:12px;color:var(--ink-faint);min-height:1.4em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trail b{color:var(--ink-soft);font-weight:500}
+.trail .x{color:var(--seal)}
 .drone-line{font-size:13px;color:var(--ink-soft);min-height:1.5em}
 .drone-line.on{color:var(--gold);font-weight:700}
 .drone-line.warn{color:var(--seal)}
 .cards{display:grid;gap:6px}
-.card{font:inherit;color:inherit;text-align:left;background:transparent;width:100%;cursor:pointer;display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:5px 10px;border:1.5px solid var(--ink-faint);border-radius:var(--r);transition:border-color .15s}
+.card{font:inherit;color:inherit;text-align:left;background:transparent;width:100%;cursor:pointer;display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:5px 10px;border:var(--bw) solid var(--ink-faint);border-radius:var(--r);transition:border-color .15s}
+.card:hover{background:var(--paper-deep)}
 .card.afford{border-color:var(--ink)}
 .card svg{width:16px;height:16px;display:block}
 .card .uname{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -132,21 +166,18 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
 @keyframes okPulse{0%{background:var(--ink);color:var(--paper)}100%{background:transparent}}
 @keyframes failShake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .chips{display:flex;gap:4px}
-.chip{display:grid;justify-items:center;min-width:30px;padding:1px 4px;border-radius:4px;border:1px solid var(--ink-faint);line-height:1.15;background:var(--paper)}
+.chip{display:grid;justify-items:center;min-width:30px;padding:1px 4px;border-radius:calc(var(--r)*.66);border:1px solid var(--ink-faint);line-height:1.15;background:var(--paper)}
 .chip b{font-family:var(--font-mono);font-size:13px;font-weight:500}
 .chip small{font-size:10px;color:var(--ink-soft)}
 .chip.hit{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .chip.hit small{color:var(--paper)}
 .chip.play{background:var(--gold);color:var(--paper);border-color:var(--gold)}
 .chip.play small{color:var(--paper)}
-.card:hover{background:var(--paper-deep)}
-.mini{font-size:12px;color:var(--ink-soft);margin:0}
-.vol-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.vol-row input{flex:1 1 160px;max-width:260px;accent-color:var(--seal)}
 .chip.ghost{border-style:dashed;color:var(--ink-faint)}
+.mini{font-size:12px;color:var(--ink-soft);margin:0}
 .btns{gap:8px}
 .pad{grid-area:pad;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
-.key{display:grid;justify-items:center;align-content:center;height:54px;border:1.5px solid var(--ink);border-radius:var(--r);background:var(--paper);
+.key{display:grid;justify-items:center;align-content:center;height:54px;border:var(--bw) solid var(--ink);border-radius:var(--r);background:var(--paper);
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;padding:0}
 .key b{font-family:var(--font-mono);font-size:16px;font-weight:500}
 .key small{font-size:10.5px;color:var(--ink-soft)}
@@ -158,12 +189,12 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
   .console{overflow-y:auto}
   .meter-wrap{min-height:200px}
 }
-@media (max-width:380px){.mana{min-width:70px}.mana .bar{width:70px}.hud{gap:8px}}
+@media (max-width:380px){.mana{min-width:70px}.mana .bar{width:70px}.hud{gap:8px}.style-pick button{padding:.42em .7em}}
 
 /* overlays */
 .overlay{position:fixed;inset:0;background:var(--scrim);display:grid;place-items:center;padding:16px;z-index:10}
 .ov-card{background:var(--paper);border:2px solid var(--ink);border-radius:var(--r);padding:22px;max-width:420px;width:100%;display:grid;gap:12px}
-.ov-card h2{font-family:var(--font-display);font-size:32px;line-height:1.1;margin:0}
+.ov-card h2{font-family:var(--font-display);font-weight:var(--dw);font-size:32px;line-height:1.1;margin:0}
 .stats{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;margin:0}
 .stats dt{color:var(--ink-soft)}
 .stats dd{margin:0;font-family:var(--font-mono);text-align:right;font-variant-numeric:tabular-nums}
@@ -179,6 +210,8 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
       <p class="eyebrow">First demo · Floor 1 · C Ionian</p>
       <h1 id="setupTitle">Tune the bard</h1>
       <p class="lede">Check that the game hears you, set your range, then hold the lane with your voice or instrument.</p>
+      <div class="style-pick" role="radiogroup" aria-label="Visual style" id="stylePickS"></div>
+      <p class="style-desc" id="styleDesc"></p>
     </header>
 
     <div class="setup-grid">
@@ -187,7 +220,6 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
         <p class="note">Headphones give the cleanest result. Sound from a speaker can reach the mic, and phones often play the game quietly once the mic is on.</p>
         <div class="row"><button id="micBtn" class="btn primary">Start microphone</button></div>
         <p id="micStatus" class="status">Microphone off.</p>
-        <div class="vol-row"><label class="note" for="vol">Game volume</label><input type="range" id="vol" min="0.5" max="4" step="0.1"><span class="kv note" id="volOut"></span></div>
       </section>
 
       <section class="panel">
@@ -213,8 +245,10 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
       </section>
 
       <section class="panel">
-        <h2><span class="step">04</span>Speaker check</h2>
-        <p class="note">Plays the reference tone and listens for it, so the game knows how much of its own sound reaches the mic.</p>
+        <h2><span class="step">04</span>Sound</h2>
+        <div class="vol-row"><label class="note" for="vol">Game volume</label><input type="range" id="vol" min="0.5" max="4" step="0.1"><span class="kv note" id="volOut"></span></div>
+        <label class="check"><input type="checkbox" id="drumsChk"> Battle drums that build with each army</label>
+        <p class="note">Speaker check: plays the reference tone and listens for it, so the game knows how much of its own sound reaches the mic.</p>
         <div class="row"><button id="bleedBtn" class="btn" disabled>Test speaker bleed</button></div>
         <p id="bleedStatus" class="status"></p>
       </section>
@@ -252,10 +286,11 @@ select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radi
         <div class="tuner"><div class="scale"><i class="t" style="left:0"></i><i class="t" style="left:25%"></i><i class="mid"></i><i class="t" style="left:75%"></i><i class="t" style="left:100%"></i><i class="needle"></i></div><span class="cents kv"></span></div>
       </div>
       <div class="heard-row"><span class="lbl">Heard</span><span class="heard" id="heard"></span></div>
+      <div class="trail kv" id="trail"></div>
       <div class="drone-line" id="droneLine"></div>
       <div class="cards" id="cards"></div>
       <p class="mini">Tap a unit to hear its summon song.</p>
-      <div class="row btns"><button id="refBtn" class="btn seal small">Reference</button><button id="padToggle" class="btn small">Tap pad</button><button id="setupBtn" class="btn small">Setup</button></div>
+      <div class="row btns"><button id="refBtn" class="btn seal small">Reference</button><button id="padToggle" class="btn small">Tap pad</button><button id="styleBtn" class="btn small">Style</button><button id="setupBtn" class="btn small">Setup</button></div>
     </div>
   </div>
 
@@ -278,15 +313,30 @@ const $ = (s, r = document) => r.querySelector(s);
 const mod = (a, n) => ((a % n) + n) % n;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const now = () => performance.now();
+const dpr = () => Math.min(2, window.devicePixelRatio || 1);
 const store = {
   get(k, d) { try { const v = localStorage.getItem('tonality.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('tonality.' + k, JSON.stringify(v)); } catch (e) {} }
 };
-const css = getComputedStyle(document.documentElement);
-const COL = {};
-['paper','paper-deep','ink','ink-soft','ink-faint','seal','indigo','gold','oct0','oct1','oct2'].forEach(k => COL[k] = css.getPropertyValue('--' + k).trim());
-const OCT_COL = [COL.oct0, COL.oct1, COL.oct2];
 const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= Styles ================= */
+const STYLES = {
+  ink:        { label: 'Ink',        desc: 'Brush and paper, after Okami. Torii gates, ink-blot soldiers.' },
+  silhouette: { label: 'Silhouette', desc: 'Bold black shapes on a bright sky, after Patapon. Easiest to read on a phone.' },
+  overtone:   { label: 'Overtone',   desc: 'Light on a night sky. Every degree has its own color, and the gates are tuning forks.' },
+};
+const STYLE_ORDER = ['ink', 'silhouette', 'overtone'];
+const DEG_COL = ['#FF6B6B', '#FFA94D', '#FFE066', '#69DB7C', '#4DABF7', '#9775FA', '#F783AC'];
+let STYLE = 'ink';
+const COL = {}; let FONT = {};
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  ['paper','paper-deep','ink','ink-soft','ink-faint','seal','indigo','gold','oct0','oct1','oct2','sky1','sky2','ground'].forEach(k => COL[k] = cs.getPropertyValue('--' + k).trim());
+  FONT = { display: cs.getPropertyValue('--font-display').trim(), body: cs.getPropertyValue('--font-body').trim(), mono: cs.getPropertyValue('--font-mono').trim(), dw: cs.getPropertyValue('--dw').trim() };
+}
+const OCT = () => [COL.oct0, COL.oct1, COL.oct2];
+const degCol = d => STYLE === 'overtone' && d >= 0 ? DEG_COL[d] : null;
 
 /* ================= Music theory ================= */
 const LETTERS = ['C','D','E','F','G','A','B'];
@@ -294,7 +344,7 @@ const LETTER_PC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
 const PHON = { C:'See', D:'Dee', E:'Ee', F:'Ef', G:'Jee', A:'Ay', B:'Bee' };
 const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const FLATS  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
-const KEY_LETTER = ['C','D','D','E','E','F','G','G','A','A','B','B']; // tonic spelling: C Db D Eb E F Gb G Ab A Bb B
+const KEY_LETTER = ['C','D','D','E','E','F','G','G','A','A','B','B'];
 const ACC_SUFFIX = { '#':'sh', 'b':'f', '##':'shsh', 'bb':'ff', '':'' };
 const phonetic = n => PHON[n[0]] + ACC_SUFFIX[n.slice(1)];
 const pretty = n => n[0] + n.slice(1).replace(/#/g, '♯').replace(/b/g, '♭');
@@ -304,42 +354,29 @@ function parseNote(s) {
   const m = /^([A-G])([#b]?)(-?\d)$/.exec(s);
   return (+m[3] + 1) * 12 + LETTER_PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
 }
-
-const TRANS = {
-  C:  { semis: 0, label: 'concert pitch' },
-  Bb: { semis: 2, label: 'B♭' },
-  Eb: { semis: 9, label: 'E♭' },
-};
+const TRANS = { C: { semis: 0, label: 'concert pitch' }, Bb: { semis: 2, label: 'B♭' }, Eb: { semis: 9, label: 'E♭' } };
 const FLOOR = { tonicPc: 0, steps: [0,2,4,5,7,9,11], label: 'C Ionian' };
-
 const PRESETS = [
-  { id:'voice-bass',     label:'Voice · bass',       low:'E2',  trans:'C' },
-  { id:'voice-baritone', label:'Voice · baritone',   low:'A2',  trans:'C' },
-  { id:'voice-tenor',    label:'Voice · tenor',      low:'C3',  trans:'C' },
-  { id:'voice-alto',     label:'Voice · alto',       low:'F3',  trans:'C' },
-  { id:'voice-soprano',  label:'Voice · soprano',    low:'C4',  trans:'C' },
-  { id:'guitar',         label:'Guitar',             low:'E2',  trans:'C' },
-  { id:'bass',           label:'Bass guitar',        low:'E1',  trans:'C' },
-  { id:'keys',           label:'Keys',               low:'C3',  trans:'C' },
-  { id:'flute',          label:'Flute',              low:'C4',  trans:'C' },
-  { id:'violin',         label:'Violin',             low:'G3',  trans:'C' },
-  { id:'cello',          label:'Cello',              low:'C2',  trans:'C' },
-  { id:'trumpet',        label:'Trumpet (B♭)',       low:'E3',  trans:'Bb' },
-  { id:'clarinet',       label:'Clarinet (B♭)',      low:'D3',  trans:'Bb' },
-  { id:'tenorsax',       label:'Tenor sax (B♭)',     low:'Ab2', trans:'Bb' },
-  { id:'altosax',        label:'Alto sax (E♭)',      low:'Db3', trans:'Eb' },
+  { id:'voice-bass',     label:'Voice · bass',     low:'E2',  trans:'C' },
+  { id:'voice-baritone', label:'Voice · baritone', low:'A2',  trans:'C' },
+  { id:'voice-tenor',    label:'Voice · tenor',    low:'C3',  trans:'C' },
+  { id:'voice-alto',     label:'Voice · alto',     low:'F3',  trans:'C' },
+  { id:'voice-soprano',  label:'Voice · soprano',  low:'C4',  trans:'C' },
+  { id:'guitar',         label:'Guitar',           low:'E2',  trans:'C' },
+  { id:'bass',           label:'Bass guitar',      low:'E1',  trans:'C' },
+  { id:'keys',           label:'Keys',             low:'C3',  trans:'C' },
+  { id:'flute',          label:'Flute',            low:'C4',  trans:'C' },
+  { id:'violin',         label:'Violin',           low:'G3',  trans:'C' },
+  { id:'cello',          label:'Cello',            low:'C2',  trans:'C' },
+  { id:'trumpet',        label:'Trumpet (B♭)',     low:'E3',  trans:'Bb' },
+  { id:'clarinet',       label:'Clarinet (B♭)',    low:'D3',  trans:'Bb' },
+  { id:'tenorsax',       label:'Tenor sax (B♭)',   low:'Ab2', trans:'Bb' },
+  { id:'altosax',        label:'Alto sax (E♭)',    low:'Db3', trans:'Eb' },
 ];
-
 const S = {
-  preset: store.get('preset', 'voice-tenor'),
-  low: store.get('low', null),          // concert MIDI of lowest comfortable note
-  trans: 'C',
-  home: 48,                              // concert MIDI of home 1
-  bleedRms: store.get('bleedRms', null), // null = speaker check not run
-  vol: store.get('vol', 1.8),            // game volume (master gain into a limiter)
-  mic: false,
+  preset: store.get('preset', 'voice-tenor'), low: store.get('low', null), trans: 'C', home: 48,
+  bleedRms: store.get('bleedRms', null), vol: store.get('vol', 1.8), drums: store.get('drums', true), mic: false,
 };
-
 function writtenTonicPc() { return mod(FLOOR.tonicPc + TRANS[S.trans].semis, 12); }
 function useFlats() { return [1,3,5,6,8,10].includes(writtenTonicPc()); }
 function spellDegree(d) {
@@ -350,13 +387,12 @@ function spellDegree(d) {
   return L + (acc === 1 ? '#' : acc === -1 ? 'b' : acc === 2 ? '##' : acc === -2 ? 'bb' : '');
 }
 function noteInfo(midi) {
-  const fromHome = midi - S.home;
-  const oct = Math.floor(fromHome / 12);
-  const deg = FLOOR.steps.indexOf(mod(fromHome, 12));
+  const fromHome = midi - S.home, oct = Math.floor(fromHome / 12), deg = FLOOR.steps.indexOf(mod(fromHome, 12));
   const wMidi = midi + TRANS[S.trans].semis;
   const name = deg >= 0 ? spellDegree(deg) : (useFlats() ? FLATS : SHARPS)[mod(wMidi, 12)];
   return { deg, oct, name, phon: phonetic(name), octNum: Math.floor(wMidi / 12) - 1 };
 }
+const label = info => pretty(info.name) + info.octNum + ' (' + info.phon + ')';
 function applyPreset(id, keepLow) {
   const p = PRESETS.find(x => x.id === id) || PRESETS[2];
   S.preset = p.id; S.trans = p.trans;
@@ -365,7 +401,7 @@ function applyPreset(id, keepLow) {
 }
 function recomputeHome() { let h = S.low; while (mod(h, 12) !== FLOOR.tonicPc) h++; S.home = h; }
 
-/* ================= Audio ================= */
+/* ================= Audio engine ================= */
 let AC = null, master = null, noiseBuf = null, detector = null;
 const REF = { until: 0, pc: FLOOR.tonicPc };
 function ensureAudio() {
@@ -374,68 +410,113 @@ function ensureAudio() {
     const lim = AC.createDynamicsCompressor();
     lim.threshold.value = -10; lim.knee.value = 8; lim.ratio.value = 10; lim.attack.value = 0.003; lim.release.value = 0.2;
     master = AC.createGain(); master.gain.value = S.vol; master.connect(lim); lim.connect(AC.destination);
-    noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * 0.5), AC.sampleRate);
+    noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * 1.0), AC.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   }
   if (AC.state === 'suspended') AC.resume();
   return AC;
 }
-function refHz() { let m = S.home; while (midiToHz(m) < 190) m += 12; return midiToHz(m); }
+function out(pan) {
+  if (!pan || !AC.createStereoPanner) return master;
+  const p = AC.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); p.connect(master); return p;
+}
+// pitched hit: sine/triangle with a falling pitch (drums, wood)
+function tone(t, f0, f1, dur, vol, pan, type) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(out(pan)); o.start(t); o.stop(t + dur + 0.02);
+}
+// filtered noise burst, with an optional filter sweep
+function nz(t, dur, vol, type, f0, f1, q, pan) {
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = noiseBuf; s.loopStart = 0; f.type = type; f.Q.value = q || 1;
+  f.frequency.setValueAtTime(f0, t); if (f1 && f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f).connect(g).connect(out(pan)); s.start(t, Math.random() * 0.4); s.stop(t + dur + 0.02);
+}
+const gateT = {};
+const allow = (k, ms) => { const t = now(); if (t - (gateT[k] || 0) < ms) return false; gateT[k] = t; return true; };
+const panOf = x => (x / LANE.len - 0.5) * 1.4;
+const sfx = {
+  clack(x)  { if (!AC || !allow('clack', 55)) return; const t = AC.currentTime; nz(t, 0.05, 0.38, 'bandpass', 1900, 1900, 4, panOf(x)); tone(t, 520, 300, 0.05, 0.16, panOf(x), 'triangle'); },
+  taiko(x)  { if (!AC || !allow('taiko', 80)) return; const t = AC.currentTime; tone(t, 125, 52, 0.34, 0.75, panOf(x)); nz(t, 0.07, 0.25, 'lowpass', 1100, 400, 0.7, panOf(x)); },
+  thwip(x)  { if (!AC || !allow('thwip', 60)) return; const t = AC.currentTime; nz(t, 0.14, 0.22, 'bandpass', 5200, 1300, 2.2, panOf(x)); },
+  tick(x)   { if (!AC || !allow('tick', 50)) return; const t = AC.currentTime; nz(t, 0.035, 0.24, 'highpass', 2800, 2800, 0.8, panOf(x)); },
+  death(x)  { if (!AC || !allow('death', 70)) return; const t = AC.currentTime; nz(t, 0.2, 0.32, 'lowpass', 900, 180, 0.8, panOf(x)); },
+  base(side){ if (!AC || !allow('base' + side, 140)) return; const t = AC.currentTime, p = side ? 0.7 : -0.7; tone(t, 92, 36, 0.55, 0.95, p); nz(t, 0.28, 0.42, 'bandpass', 700, 300, 0.7, p); },
+  summon()  { if (!AC) return; const t = AC.currentTime; nz(t, 0.34, 0.34, 'bandpass', 380, 2800, 1.3, -0.5); tone(t + 0.02, 170, 95, 0.2, 0.42, -0.5); },
+  fail()    { if (!AC) return; const t = AC.currentTime; tone(t, 190, 170, 0.07, 0.3, 0, 'triangle'); tone(t + 0.1, 170, 150, 0.08, 0.3, 0, 'triangle'); },
+  win()     { if (!AC) return; const t = AC.currentTime; [0, .28, .5, .68, .82, .93, 1.02].forEach((o, i) => tone(t + o, 140 - i * 4, 55, 0.3, 0.6)); tone(t + 1.2, 110, 40, 0.9, 1.0); nz(t + 1.2, 0.5, 0.35, 'lowpass', 1200, 300, 0.6); },
+  lose()    { if (!AC) return; const t = AC.currentTime; [0, .6, 1.2].forEach((o, i) => tone(t + o, 100 - i * 14, 34, 0.7, 0.8)); },
+};
+// The tuning fork: a pure sine with a brief metallic strike partial on top
 function playRef() {
   ensureAudio();
-  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
-  o.type = 'sine'; o.frequency.value = refHz();
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.04);
-  g.gain.setValueAtTime(0.5, t + 1.1); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.5);
+  const t = AC.currentTime, f = refHz(), o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'sine'; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.55, t + 0.015);
+  g.gain.setValueAtTime(0.55, t + 0.9); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.5);
   o.connect(g).connect(master); o.start(t); o.stop(t + 1.55);
+  tone(t, f * 6.27, f * 6.2, 0.14, 0.12);
   REF.until = now() + 1550 + 150; REF.pc = FLOOR.tonicPc;
 }
-let lastNoise = 0;
-function noise(dur, freq, q, vol, type) {
-  if (!AC) return;
-  const tn = now(); if (tn - lastNoise < 45) return; lastNoise = tn;
-  const t = AC.currentTime, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
-  s.buffer = noiseBuf; f.type = type || 'bandpass'; f.frequency.value = freq; f.Q.value = q;
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
-  s.connect(f).connect(g).connect(master); s.start(t); s.stop(t + dur + 0.02);
+function refHz() { let m = S.home; while (midiToHz(m) < 190) m += 12; return midiToHz(m); }
+// The bard's voice: a sawtooth through two vowel formants ("ah"), with vibrato that eases in
+function voice(hz, t, dur, vol) {
+  const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz;
+  const lfo = AC.createOscillator(), lg = AC.createGain(); lfo.frequency.value = 5.3; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(hz * 0.007, t + 0.35);
+  lfo.connect(lg).connect(o.frequency);
+  const f1 = AC.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 760; f1.Q.value = 4.5;
+  const f2 = AC.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1180; f2.Q.value = 5;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(3200, hz * 5);
+  const b1 = AC.createGain(), b2 = AC.createGain(), b3 = AC.createGain(), g = AC.createGain();
+  b1.gain.value = 1.3; b2.gain.value = 0.8; b3.gain.value = 0.55;
+  o.connect(f1).connect(b1).connect(g); o.connect(f2).connect(b2).connect(g); o.connect(lp).connect(b3).connect(g);
+  g.connect(master);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.05);
+  o.start(t); lfo.start(t);
+  const stop = (at) => { const e = at || AC.currentTime; g.gain.cancelScheduledValues(e); g.gain.setValueAtTime(g.gain.value || vol, e); g.gain.linearRampToValueAtTime(0, e + 0.12); o.stop(e + 0.15); lfo.stop(e + 0.15); };
+  if (dur) { g.gain.setValueAtTime(vol, t + dur - 0.08); g.gain.linearRampToValueAtTime(0, t + dur); o.stop(t + dur + 0.02); lfo.stop(t + dur + 0.02); }
+  return { stop };
 }
-const sfx = {
-  hit:    () => noise(0.06, 2200, 1.4, 0.16),
-  base:   () => noise(0.25, 180, 0.7, 0.5, 'lowpass'),
-  summon: () => noise(0.35, 900, 0.5, 0.3),
-  fail:   () => noise(0.14, 420, 2.0, 0.2),
-};
 // A unit's summon song: its motif sung at your home-1 pitches. The mic is muted while it plays.
 let songTimers = [];
 function playSong(k, onStep) {
   ensureAudio();
   songTimers.forEach(clearTimeout); songTimers = [];
   const notes = U[k].motif.map(d => S.home + FLOOR.steps[d]);
-  const dur = 0.42, gap = 0.1, t0 = AC.currentTime + 0.05;
+  const dur = 0.44, gap = 0.1, t0 = AC.currentTime + 0.05;
   notes.forEach((m, i) => {
-    const t = t0 + i * (dur + gap), hz = midiToHz(m);
-    const o = AC.createOscillator(), o2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain();
-    o.type = 'sawtooth'; o.frequency.value = hz; o2.type = 'sine'; o2.frequency.value = hz * 2;
-    f.type = 'lowpass'; f.frequency.value = Math.min(5000, hz * 7); f.Q.value = 0.8;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t + 0.03);
-    g.gain.setValueAtTime(0.3, t + dur - 0.07); g.gain.linearRampToValueAtTime(0, t + dur);
-    o.connect(f); o2.connect(f); f.connect(g).connect(master);
-    o.start(t); o2.start(t); o.stop(t + dur + 0.02); o2.stop(t + dur + 0.02);
+    voice(midiToHz(m), t0 + i * (dur + gap), dur, 0.42);
     songTimers.push(setTimeout(() => onStep && onStep(i), (i * (dur + gap) + 0.05) * 1000));
   });
   const total = (notes.length * (dur + gap) + 0.05) * 1000;
   IN.muteUntil = now() + total + 250;
   songTimers.push(setTimeout(() => onStep && onStep(-1), total));
 }
-function padTone(midi) {
-  ensureAudio();
-  let m = midi; while (midiToHz(m) < 130) m += 12;
-  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
-  o.type = 'triangle'; o.frequency.value = midiToHz(m);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.16, t + 0.02);
-  o.connect(g).connect(master); o.start(t);
-  return { stop() { const t2 = AC.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.exponentialRampToValueAtTime(0.0005, t2 + 0.15); o.stop(t2 + 0.2); } };
+function padTone(midi) { ensureAudio(); let m = midi; while (midiToHz(m) < 110) m += 12; return voice(midiToHz(m), AC.currentTime, 0, 0.32); }
+
+// Battle drums: each army gets its own unpitched kit, and parts join as the army grows
+const PERC = { next: 0, step: 0, bpm: 92 };
+function percTick() {
+  if (!AC || !G || !G.running || G.over || screen !== 'battle' || !S.drums) { PERC.next = 0; return; }
+  const spb = 60 / PERC.bpm / 2;
+  if (!PERC.next || PERC.next < AC.currentTime) PERC.next = AC.currentTime + 0.06;
+  while (PERC.next < AC.currentTime + 0.14) { drumStep(PERC.step, PERC.next); PERC.next += spb; PERC.step = (PERC.step + 1) % 8; }
 }
+function drumStep(st, t) {
+  const mine = G.units.filter(u => u.side === 0).length, foe = G.units.length - mine;
+  // yours: frame drum, shaker, low tom (left)
+  if (mine >= 1 && (st === 0 || st === 4)) { tone(t, 150, 92, 0.13, 0.26, -0.45); nz(t, 0.05, 0.08, 'lowpass', 500, 300, 0.7, -0.45); }
+  if (mine >= 3 && st % 2 === 1) nz(t, 0.045, 0.06, 'highpass', 7000, 7000, 0.7, -0.45);
+  if (mine >= 6 && (st === 6 || st === 7)) tone(t, 115, 70, 0.16, 0.22, -0.45);
+  // enemy: woodblock, claves, deep drum (right)
+  if (foe >= 1 && (st === 2 || st === 6)) { nz(t, 0.04, 0.2, 'bandpass', 1400, 1400, 7, 0.45); }
+  if (foe >= 3 && (st === 3 || st === 7)) nz(t, 0.03, 0.12, 'bandpass', 2600, 2600, 9, 0.45);
+  if (foe >= 6 && st === 0) tone(t, 82, 42, 0.32, 0.32, 0.45);
+}
+setInterval(percTick, 30);
 
 /* ================= Pitch detection (YIN on a 2x-decimated window) ================= */
 class Detector {
@@ -471,12 +552,10 @@ class Detector {
 }
 
 /* ================= Note tracking ================= */
-const MIN_NOTE_MS = 80, RELEASE_MS = 90, DRONE_MS = 1000, GAP_MS = 1800, MOTIF_MIN_MS = 150, CLARITY = 0.85;
+const MIN_NOTE_MS = 80, RELEASE_MS = 90, DRONE_MS = 1000, GAP_MS = 1800, MOTIF_MIN_MS = 110, CLARITY = 0.85;
 const IN = { cur: null, cand: null, candSince: 0, lostSince: 0, padUntil: 0, muteUntil: 0, nf: 0.003, last: { midiF: null, rms: 0 }, disp: null, dispAlpha: 0 };
-const onNoteOn = [], onNoteOff = [];
-const emitOn = (n, t) => onNoteOn.forEach(f => f(n, t));
+const onNoteOff = [];
 const emitOff = (n, t) => onNoteOff.forEach(f => f(n, t));
-
 function feedMic(midiF, t) {
   const n = midiF == null ? null : Math.round(midiF);
   const c = IN.cur;
@@ -490,8 +569,8 @@ function feedMic(midiF, t) {
   if (IN.cand != null && t - IN.candSince >= MIN_NOTE_MS) {
     if (c) { IN.cur = null; emitOff(c, IN.candSince); }
     const cents = (midiF - IN.cand) * 100;
-    const nn = { midi: IN.cand, start: IN.candSince, lastSeen: t, cents, cAbs: Math.abs(cents), drone: false, pad: false };
-    IN.cur = nn; IN.cand = null; IN.lostSince = 0; emitOn(nn, nn.start); return;
+    IN.cur = { midi: IN.cand, start: IN.candSince, lastSeen: t, cents, cAbs: Math.abs(cents), drone: false, pad: false };
+    IN.cand = null; IN.lostSince = 0; return;
   }
   if (c && ((IN.cand == null && t - IN.lostSince >= RELEASE_MS) || t - IN.lostSince >= RELEASE_MS + MIN_NOTE_MS)) {
     IN.cur = null; IN.lostSince = 0; emitOff(c, t);
@@ -501,24 +580,22 @@ function padDown(semi) {
   const t = now(), midi = S.home + semi;
   if (IN.cur) { const c = IN.cur; IN.cur = null; if (c.snd) c.snd.stop(); emitOff(c, t); }
   const nn = { midi, start: t, lastSeen: t, cents: 0, cAbs: 0, drone: false, pad: true, semi };
-  nn.snd = padTone(midi); IN.cur = nn; IN.cand = null; emitOn(nn, t);
+  nn.snd = padTone(midi); IN.cur = nn; IN.cand = null;
 }
 function padUp(semi) {
   const c = IN.cur;
   if (c && c.pad && (semi == null || c.semi === semi)) { if (c.snd) c.snd.stop(); IN.cur = null; IN.padUntil = now() + 250; emitOff(c, now()); }
 }
-
 const DETECT_LOW = { active: false, timer: null };
 const BLEED = { active: false, frames: 0, hits: 0, rmsSum: 0, start: 0, end: 0 };
-
 function micFrame(t) {
   const fMin = DETECT_LOW.active ? 30 : Math.max(30, midiToHz(S.low - 2) * 0.92);
   const r = detector.read(fMin);
   const tonal = r.f > 0 && r.clarity > CLARITY;
-  if (!tonal) IN.nf = Math.min(0.04, r.rms < IN.nf ? r.rms : IN.nf + (r.rms - IN.nf) * 0.002);
+  if (!tonal) IN.nf = Math.min(0.03, r.rms < IN.nf ? r.rms : IN.nf + (r.rms - IN.nf) * 0.002);
   else if (r.rms < IN.nf) IN.nf = r.rms;
   const gate = Math.max(0.004, IN.nf * 3);
-  let midiF = (r.f > 0 && r.rms > gate && r.clarity > CLARITY) ? hzToMidi(r.f) : null;
+  let midiF = (tonal && r.rms > gate) ? hzToMidi(r.f) : null;
   if (BLEED.active && t > BLEED.start + 150 && t < BLEED.end) {
     BLEED.frames++;
     if (midiF != null && mod(Math.round(midiF), 12) === REF.pc) { BLEED.hits++; BLEED.rmsSum += r.rms; }
@@ -534,11 +611,9 @@ function micFrame(t) {
 function updateDisp() {
   const c = IN.cur;
   let target = null;
-  if (c && c.pad) target = c.midi;
-  else if (IN.last.midiF != null) target = IN.last.midiF;
+  if (c && c.pad) target = c.midi; else if (IN.last.midiF != null) target = IN.last.midiF;
   if (target != null) {
-    if (IN.disp == null || Math.abs(target - IN.disp) > 6) IN.disp = target;
-    else IN.disp += (target - IN.disp) * 0.45;
+    if (IN.disp == null || Math.abs(target - IN.disp) > 6) IN.disp = target; else IN.disp += (target - IN.disp) * 0.45;
     IN.dispAlpha = 1;
   } else IN.dispAlpha = Math.max(0, IN.dispAlpha - 0.06);
 }
@@ -556,21 +631,18 @@ const ICON = {
   rng: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14.5 14h-13z" fill="currentColor"/></svg>',
   hvy: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="currentColor"/></svg>',
 };
-
 let G = null, screen = 'setup';
 function newGame() {
   G = { t: 0, running: true, over: false, mana: 60, manaMax: 200, hp: [LANE.baseHp, LANE.baseHp],
-        units: [], proj: [], fx: [], motif: [], motifT: 0, foeMana: 20, nextPick: 'inf', spawnQueue: [], wave: 1,
+        units: [], proj: [], fx: [], rings: [], motif: [], motifT: 0, trail: [], foeMana: 20, nextPick: 'inf', spawnQueue: [], wave: 1,
         drone: null, id: 1, stats: { summoned: 0, manaEarned: 0, accSum: 0, accT: 0, refs: 0 } };
 }
 const accuracy = cAbs => cAbs <= 20 ? 1 : clamp(1 - (cAbs - 20) / 40 * 0.6, 0.4, 1);
-
 function spawn(side, type) {
   const d = U[type];
   G.units.push({ id: G.id++, side, type, x: side === 0 ? LANE.youX + LANE.baseHalf + 4 : LANE.foeX - LANE.baseHalf - 4,
-                 hp: d.hp, max: d.hp, cd: 0.4, bob: Math.random() * 6.28, seed: Math.random() * 1000 });
+                 hp: d.hp, max: d.hp, cd: 0.4, bob: Math.random() * 6.28, seed: Math.random() * 1000, born: G.t });
 }
-// Scripted enemy: earns its own budget at a slowly rising rate and buys units as it can afford them
 const FOE_RATE = t => 2.6 + t / 120;
 function pickEnemy() { const r = Math.random(); if (G.t > 80 && r < 0.2) return 'hvy'; if (G.t > 30 && r < 0.45) return 'rng'; return 'inf'; }
 function enemyTick(dt) {
@@ -585,11 +657,11 @@ function enemyTick(dt) {
   while (G.spawnQueue.length && G.spawnQueue[0].at <= G.t) spawn(1, G.spawnQueue.shift().type);
 }
 function damage(u, dmg) {
-  u.hp -= dmg; sfx.hit(); splat(u.x, -U[u.type].r, u.side ? COL.indigo : COL.seal, 3);
-  if (u.hp <= 0) splat(u.x, -U[u.type].r, COL.ink, 10);
+  u.hp -= dmg; splat(u.x, -U[u.type].r, u.side ? COL.indigo : COL.seal, 3);
+  if (u.hp <= 0) { splat(u.x, -U[u.type].r, STYLE === 'overtone' ? (u.side ? COL.indigo : COL.seal) : COL.ink, 12); sfx.death(u.x); }
 }
 function damageBase(side, dmg) {
-  G.hp[side] = Math.max(0, G.hp[side] - dmg); sfx.base();
+  G.hp[side] = Math.max(0, G.hp[side] - dmg); sfx.base(side);
   splat(side === 0 ? LANE.youX + LANE.baseHalf : LANE.foeX - LANE.baseHalf, -30, side ? COL.indigo : COL.seal, 4);
   if (G.hp[side] <= 0) endGame(side === 1);
 }
@@ -610,9 +682,8 @@ function update(dt) {
       G.drone = { deg: info.deg, rate, acc, ok: true };
     } else G.drone = { ok: false, below: info.oct < 0 };
   } else G.drone = null;
-  if (G.motif.length && now() - G.motifT > GAP_MS + MOTIF_MIN_MS + 80) { G.motif = []; hint('Too long between notes. Keep each gap under about 2 seconds.'); }
+  if (G.motif.length && now() - G.motifT > GAP_MS + MOTIF_MIN_MS + 80) { if (G.motif.length >= 2) hint('Too long between notes. Keep each gap under about 2 seconds.'); G.motif = []; }
   enemyTick(dt);
-
   for (const u of G.units) {
     if (u.hp <= 0) continue;
     const d = U[u.type], dir = u.side === 0 ? 1 : -1;
@@ -626,25 +697,24 @@ function update(dt) {
     }
     const baseFront = u.side === 0 ? LANE.foeX - LANE.baseHalf : LANE.youX + LANE.baseHalf;
     const baseDist = (baseFront - u.x) * dir;
-    const reachT = target && (d.proj ? tdist <= d.range : tdist <= d.r + U[target.type].r + 3);
+    const contact = target ? d.r + U[target.type].r + 3 : 0;
+    const reachT = target && (d.proj ? tdist <= d.range : tdist <= contact);
     const reachB = d.proj ? baseDist <= d.range : baseDist <= d.r + 3;
     if (reachT || reachB) {
       if (u.cd <= 0) {
         u.cd = d.cd;
-        if (d.proj) G.proj.push({ side: u.side, x: u.x, x0: u.x, tid: reachT ? target.id : null, toX: reachT ? target.x : baseFront, dmg: d.dmg });
-        else if (reachT) damage(target, d.dmg); else damageBase(1 - u.side, d.dmg);
+        if (d.proj) { G.proj.push({ side: u.side, x: u.x, x0: u.x, tid: reachT ? target.id : null, toX: reachT ? target.x : baseFront, dmg: d.dmg }); sfx.thwip(u.x); }
+        else { if (u.type === 'hvy') sfx.taiko(u.x); else sfx.clack(u.x); if (reachT) damage(target, d.dmg); else damageBase(1 - u.side, d.dmg); }
         u.lunge = 0.15;
       }
-    } else if (!block && !(target && tdist <= d.r + U[target.type].r + 3)) {
-      u.x += dir * d.speed * dt; u.bob += dt * 9;
-    }
+    } else if (!block && !(target && tdist <= contact)) { u.x += dir * d.speed * dt; u.bob += dt * 9; }
     if (u.lunge) u.lunge = Math.max(0, u.lunge - dt);
   }
   for (const p of G.proj) {
     const tgt = p.tid ? G.units.find(x => x.id === p.tid && x.hp > 0) : null;
     if (p.tid && !tgt) { p.done = true; continue; }
     const tx = tgt ? tgt.x : p.toX, dx = tx - p.x, step = 260 * dt;
-    if (Math.abs(dx) <= step) { p.done = true; if (tgt) damage(tgt, p.dmg); else damageBase(1 - p.side, p.dmg); }
+    if (Math.abs(dx) <= step) { p.done = true; sfx.tick(tx); if (tgt) damage(tgt, p.dmg); else damageBase(1 - p.side, p.dmg); }
     else p.x += Math.sign(dx) * step;
     p.toX = tx;
   }
@@ -652,6 +722,8 @@ function update(dt) {
   G.units = G.units.filter(u => u.hp > 0);
   for (const f of G.fx) { f.age += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 160 * dt; }
   G.fx = G.fx.filter(f => f.age < f.life);
+  for (const r of G.rings) r.age += dt;
+  G.rings = G.rings.filter(r => r.age < 0.9);
 }
 
 /* motifs */
@@ -662,27 +734,42 @@ function prefixOk(m, buf) {
 }
 let lastHint = 0;
 function hint(msg) { const t = now(); if (t - lastHint > 2500) { lastHint = t; toast(msg); } }
-const label = info => pretty(info.name) + info.octNum + ' (' + info.phon + ')';
+function pushTrail(info) {
+  const txt = info.deg < 0 ? pretty(info.name) : (info.deg + 1) + (info.oct > 0 ? '′'.repeat(info.oct) : info.oct < 0 ? '‚' : '');
+  G.trail.push({ txt, bad: info.deg < 0 || info.oct < 0 }); if (G.trail.length > 8) G.trail.shift();
+}
+const matchSet = buf => ORDER.filter(k => prefixOk(U[k].motif, buf));
 function motifNote(n, t) {
   if (!G || !G.running || G.over) return;
   const info = noteInfo(n.midi);
+  pushTrail(info);
+  G.rings.push({ age: 0, deg: info.deg, oct: info.oct });
   if (G.motif.length && t - G.motifT > GAP_MS) G.motif = [];
   if (info.oct < 0) { hint(label(info) + ' is below your home 1, ' + label(noteInfo(S.home)) + '.'); G.motif = []; return; }
   if (info.deg < 0) { if (G.motif.length) hint(label(info) + ' is out of key, so the motif restarts.'); G.motif = []; return; }
   const isHome = info.deg === 0 && info.oct === 0;
-  if (!G.motif.length && !isHome) {         // motifs start on home 1; other notes are free to drone
+  const last = G.motif[G.motif.length - 1];
+  // the same note again (a wobble or a re-sung syllable) continues it instead of breaking the motif
+  if (last && last.deg === info.deg && last.oct === info.oct) { last.n = n; G.motifT = t; return; }
+  if (!G.motif.length && !isHome) {
     if (info.deg === 0) hint('Motifs start on your home 1, ' + label(noteInfo(S.home)) + '. That was ' + label(info) + '.');
     return;
   }
-  G.motif.push({ deg: info.deg, oct: info.oct, n }); G.motifT = t;
-  const cands = ORDER.filter(k => prefixOk(U[k].motif, G.motif));
+  const entry = { deg: info.deg, oct: info.oct, n };
+  let next = G.motif.concat([entry]), cands = matchSet(next);
+  // the note before may have been a passing tone on the way here: try without it
+  if (!cands.length && G.motif.length >= 2) {
+    const alt = G.motif.slice(0, -1).concat([entry]), c2 = matchSet(alt);
+    if (c2.length) { next = alt; cands = c2; }
+  }
   if (!cands.length) {
-    const prev = G.motif.slice(0, -1);
-    const opts = ORDER.filter(k => prefixOk(U[k].motif, prev)).map(k => (U[k].motif[prev.length] + 1) + ' for ' + U[k].name);
-    if (!isHome && prev.length) hint('After ' + prev.map(m => m.deg + 1).join('-') + ', sing ' + opts.join(' or ') + '.');
-    G.motif = isHome ? [G.motif[G.motif.length - 1]] : [];
+    const prev = G.motif;
+    const opts = matchSet(prev).map(k => (U[k].motif[prev.length] + 1) + ' for ' + U[k].name);
+    if (!isHome && prev.length && opts.length) hint('After ' + prev.map(m => m.deg + 1).join('-') + ', sing ' + opts.join(' or ') + '.');
+    G.motif = isHome ? [entry] : []; G.motifT = t;
     return;
   }
+  G.motif = next; G.motifT = t;
   const full = cands.find(k => U[k].motif.length === G.motif.length);
   if (full) { trySummon(full); G.motif = []; }
 }
@@ -697,9 +784,8 @@ function trySummon(k) {
   if (G.mana < d.cost) { toast(d.name + ' needs ' + d.cost + ' mana. Drone 1 to earn more.'); sfx.fail(); pulseCard(k, 'fail'); return; }
   G.mana -= d.cost; spawn(0, k); G.stats.summoned++; sfx.summon(); pulseCard(k, 'ok'); toast(d.name + ' summoned');
 }
-
 function endGame(won) {
-  G.over = true; G.running = false;
+  G.over = true; G.running = false; won ? sfx.win() : sfx.lose();
   const acc = G.stats.accT > 0 ? Math.round(G.stats.accSum / G.stats.accT * 100) + '%' : '—';
   const mm = Math.floor(G.t / 60), ss = String(Math.floor(G.t % 60)).padStart(2, '0');
   $('#endEyebrow').textContent = 'Floor 1 · C Ionian';
@@ -712,111 +798,179 @@ function endGame(won) {
 }
 
 /* ================= Drawing: lane ================= */
-const lane = { cv: $('#lane'), ctx: null, bg: null, w: 0, h: 0 };
+const lane = { cv: $('#lane'), ctx: null, bg: null, bgStyle: null };
 lane.ctx = lane.cv.getContext('2d');
 function sizeCanvas(cv) {
-  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
-  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  const r = cv.getBoundingClientRect(), s = dpr();
+  const w = Math.max(1, Math.round(r.width * s)), h = Math.max(1, Math.round(r.height * s));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; return true; }
   return false;
 }
 function rng(seed) { let s = seed % 2147483647; if (s <= 0) s += 2147483646; return () => (s = s * 16807 % 2147483647) / 2147483647; }
+function ridge(x, W, H, y, amp, n, R, smooth) {
+  const pts = []; for (let i = 0; i <= n; i++) pts.push([W * i / n, H * (y - R() * amp)]);
+  x.beginPath(); x.moveTo(0, H); x.lineTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i <= n; i++) { const [px, py] = pts[i - 1], [qx, qy] = pts[i]; x.quadraticCurveTo(px + (qx - px) * 0.5, Math.min(py, qy) - H * smooth * R(), qx, qy); }
+  x.lineTo(W, H); x.closePath(); x.fill();
+}
 function makeBg(W, H) {
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const x = c.getContext('2d'), R = rng(11);
-  x.fillStyle = COL.paper; x.fillRect(0, 0, W, H);
-  x.globalAlpha = 0.1; x.fillStyle = COL.seal; x.beginPath(); x.arc(W * 0.7, H * 0.3, H * 0.15, 0, Math.PI * 2); x.fill();
-  [[0.50, 0.06, 0.18], [0.60, 0.09, 0.13], [0.70, 0.13, 0.07]].forEach(([y, a, amp]) => {
-    x.globalAlpha = a; x.fillStyle = COL.ink; x.beginPath(); x.moveTo(0, H);
-    const n = 9, pts = []; for (let i = 0; i <= n; i++) pts.push([W * i / n, H * (y - R() * amp)]);
-    x.lineTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i <= n; i++) { const [px, py] = pts[i - 1], [qx, qy] = pts[i]; x.quadraticCurveTo(px + (qx - px) * 0.5, Math.min(py, qy) - H * 0.05 * R(), qx, qy); }
-    x.lineTo(W, H); x.closePath(); x.fill();
-  });
-  x.globalAlpha = 0.05; x.fillStyle = COL.ink;
-  for (let i = 0; i < W * H / 900; i++) x.fillRect(R() * W, R() * H, 1, 1);
-  const gy = H * 0.82;
-  x.globalAlpha = 0.9; x.strokeStyle = COL.ink; x.lineCap = 'round';
-  for (let k = 0; k < 3; k++) { x.lineWidth = (k + 1) * 1.2; x.beginPath(); x.moveTo(-5, gy + k * 1.5); for (let px = 0; px <= W + 10; px += 30) x.lineTo(px, gy + k * 1.5 + (R() - 0.5) * 2); x.stroke(); x.globalAlpha = 0.35; }
+  const x = c.getContext('2d'), R = rng(11), gy = H * 0.82;
+  if (STYLE === 'ink') {
+    x.fillStyle = COL.paper; x.fillRect(0, 0, W, H);
+    x.globalAlpha = 0.1; x.fillStyle = COL.seal; x.beginPath(); x.arc(W * 0.7, H * 0.3, H * 0.15, 0, Math.PI * 2); x.fill();
+    [[0.50, 0.06, 0.18], [0.60, 0.09, 0.13], [0.70, 0.13, 0.07]].forEach(([y, a, amp]) => { x.globalAlpha = a; x.fillStyle = COL.ink; ridge(x, W, H, y, amp, 9, R, 0.05); });
+    x.globalAlpha = 0.05; x.fillStyle = COL.ink; for (let i = 0; i < W * H / 900; i++) x.fillRect(R() * W, R() * H, 1, 1);
+    x.globalAlpha = 0.9; x.strokeStyle = COL.ink; x.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { x.lineWidth = (k + 1) * 1.2; x.beginPath(); x.moveTo(-5, gy + k * 1.5); for (let px = 0; px <= W + 10; px += 30) x.lineTo(px, gy + k * 1.5 + (R() - 0.5) * 2); x.stroke(); x.globalAlpha = 0.35; }
+  } else if (STYLE === 'silhouette') {
+    const g = x.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, COL.sky1); g.addColorStop(1, COL.sky2);
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.globalAlpha = 0.55; x.fillStyle = '#FFFFFF'; x.beginPath(); x.arc(W * 0.72, gy - H * 0.06, H * 0.26, 0, Math.PI * 2); x.fill();
+    x.globalAlpha = 0.85; for (let i = 0; i < 4; i++) { const cx = R() * W, cy = H * (0.12 + R() * 0.25), s = H * (0.05 + R() * 0.04); x.beginPath(); x.ellipse(cx, cy, s * 2.4, s, 0, 0, Math.PI * 2); x.ellipse(cx + s, cy - s * 0.5, s * 1.4, s * 0.9, 0, 0, Math.PI * 2); x.fill(); }
+    x.globalAlpha = 0.22; x.fillStyle = COL.ink; ridge(x, W, H, 0.66, 0.12, 6, R, 0.08);
+    x.globalAlpha = 1; x.fillStyle = COL.ink; x.fillRect(0, gy, W, H - gy);
+    // grass tufts along the ground edge
+    for (let px = 0; px < W; px += 9 + R() * 14) { const h = 3 + R() * 7; x.beginPath(); x.moveTo(px, gy + 1); x.lineTo(px + 2, gy - h); x.lineTo(px + 4, gy + 1); x.fill(); }
+  } else {
+    const g = x.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, COL.sky1); g.addColorStop(1, COL.sky2);
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < W * H / 2600; i++) { x.globalAlpha = 0.2 + R() * 0.7; x.fillStyle = COL.ink; const s = R() < 0.92 ? 1 : 2; x.fillRect(R() * W, R() * gy * 0.95, s, s); }
+    // the overtone series: arcs at 1, 1/2, 1/3 ... of the fundamental's radius
+    x.strokeStyle = COL.ground; x.lineWidth = 1;
+    for (let n = 1; n <= 9; n++) { x.globalAlpha = 0.28 - n * 0.02; x.beginPath(); x.arc(W / 2, gy, (W * 0.62) / n, Math.PI, 2 * Math.PI); x.stroke(); }
+    x.globalAlpha = 1; x.fillStyle = COL['paper-deep']; x.fillRect(0, gy, W, H - gy);
+    x.shadowColor = COL.ground; x.shadowBlur = 14; x.strokeStyle = COL.ground; x.lineWidth = 2; x.beginPath(); x.moveTo(0, gy); x.lineTo(W, gy); x.stroke(); x.shadowBlur = 0;
+  }
   x.globalAlpha = 1;
   return c;
 }
-function drawGate(x, gy, scale, color, hpFrac, flip) {
-  const ctx = lane.ctx, h = 70 * scale, w = 30 * scale;
-  ctx.save(); ctx.translate(x, gy);
-  ctx.fillStyle = color; ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.5 * scale;
-  // posts
-  ctx.fillRect(-w * 0.5, -h, w * 0.16, h); ctx.fillRect(w * 0.34, -h, w * 0.16, h);
-  // beams
-  ctx.beginPath(); ctx.moveTo(-w * 0.85, -h - 2 * scale); ctx.quadraticCurveTo(0, -h + 4 * scale, w * 0.85, -h - 2 * scale);
-  ctx.lineTo(w * 0.8, -h + 5 * scale); ctx.quadraticCurveTo(0, -h + 10 * scale, -w * 0.8, -h + 5 * scale); ctx.closePath(); ctx.fill();
-  ctx.fillRect(-w * 0.62, -h * 0.78, w * 1.24, 4 * scale);
-  // damage: ink cracks fade the gate
-  ctx.globalAlpha = (1 - hpFrac) * 0.6; ctx.fillStyle = COL.paper; ctx.fillRect(-w, -h - 4 * scale, w * 2, h + 4 * scale);
+function drawGate(side, X, gy, gs, hpFrac) {
+  const ctx = lane.ctx, color = side ? COL.indigo : COL.seal, dir = side ? -1 : 1;
+  ctx.save(); ctx.translate(X, gy);
+  if (STYLE === 'ink') {
+    const h = 70 * gs, w = 30 * gs;
+    ctx.fillStyle = color;
+    ctx.fillRect(-w * 0.5, -h, w * 0.16, h); ctx.fillRect(w * 0.34, -h, w * 0.16, h);
+    ctx.beginPath(); ctx.moveTo(-w * 0.85, -h - 2 * gs); ctx.quadraticCurveTo(0, -h + 4 * gs, w * 0.85, -h - 2 * gs);
+    ctx.lineTo(w * 0.8, -h + 5 * gs); ctx.quadraticCurveTo(0, -h + 10 * gs, -w * 0.8, -h + 5 * gs); ctx.closePath(); ctx.fill();
+    ctx.fillRect(-w * 0.62, -h * 0.78, w * 1.24, 4 * gs);
+    ctx.globalAlpha = (1 - hpFrac) * 0.6; ctx.fillStyle = COL.paper; ctx.fillRect(-w, -h - 4 * gs, w * 2, h + 4 * gs);
+  } else if (STYLE === 'silhouette') {
+    const h = (52 + 22 * hpFrac) * gs, w = 26 * gs, t = now() / 1000;
+    ctx.fillStyle = COL.ink;
+    ctx.fillRect(-w / 2, -h, w, h);
+    for (let i = 0; i < 3; i++) ctx.fillRect(-w / 2 + i * w * 0.4, -h - 6 * gs, w * 0.2, 6 * gs);
+    ctx.fillStyle = COL.sky2; ctx.beginPath(); ctx.arc(0, -h * 0.25, w * 0.22, Math.PI, 0); ctx.lineTo(w * 0.22, 0); ctx.lineTo(-w * 0.22, 0); ctx.fill();
+    ctx.strokeStyle = COL.ink; ctx.lineWidth = 2 * gs; ctx.beginPath(); ctx.moveTo(0, -h - 6 * gs); ctx.lineTo(0, -h - 30 * gs); ctx.stroke();
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, -h - 30 * gs);
+    const wave = reduceMotion ? 0 : Math.sin(t * 5) * 2 * gs;
+    ctx.quadraticCurveTo(dir * 9 * gs, -h - 28 * gs + wave, dir * 18 * gs, -h - 25 * gs); ctx.lineTo(0, -h - 19 * gs); ctx.closePath(); ctx.fill();
+  } else {
+    const h = 74 * gs, w = 14 * gs, flick = reduceMotion ? 1 : 0.85 + Math.sin(now() / 90 + side * 2) * 0.15 * (1 - hpFrac);
+    ctx.globalAlpha = (0.35 + 0.65 * hpFrac) * flick;
+    ctx.strokeStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 16 * gs / 2; ctx.lineWidth = 3.2 * gs / 1.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -h * 0.42);
+    ctx.moveTo(-w, -h); ctx.lineTo(-w, -h * 0.55); ctx.quadraticCurveTo(-w, -h * 0.42, 0, -h * 0.42); ctx.quadraticCurveTo(w, -h * 0.42, w, -h * 0.55); ctx.lineTo(w, -h);
+    ctx.stroke();
+    ctx.globalAlpha = 0.25 * hpFrac; ctx.beginPath(); ctx.arc(0, -h * 0.75, w * 1.9, 0, Math.PI * 2); ctx.stroke();
+  }
   ctx.restore();
 }
 function blobPath(ctx, r, seed, pts) {
   const R = rng(Math.floor(seed) + 3); ctx.beginPath();
-  for (let i = 0; i <= pts; i++) {
-    const a = (i / pts) * Math.PI * 2, rr = r * (0.88 + R() * 0.22);
-    const px = Math.cos(a) * rr, py = Math.sin(a) * rr; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
-  }
+  for (let i = 0; i <= pts; i++) { const a = (i / pts) * Math.PI * 2, rr = r * (0.88 + R() * 0.22); const px = Math.cos(a) * rr, py = Math.sin(a) * rr; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
   ctx.closePath();
 }
+function bodyPath(ctx, type, r, seed) {
+  if (type === 'inf') { if (STYLE === 'ink') blobPath(ctx, r, seed, 10); else { ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); } }
+  else if (type === 'rng') { ctx.beginPath(); ctx.moveTo(0, -r * 1.25); ctx.lineTo(r, r); ctx.lineTo(-r, r); ctx.closePath(); }
+  else { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-r, -r * 0.95, r * 2, r * 1.95, r * 0.35); else ctx.rect(-r, -r * 0.95, r * 2, r * 1.95); }
+}
 function drawUnit(u, X, gy, k) {
-  const ctx = lane.ctx, d = U[u.type], r = (d.r / 11) * clamp(11 * k * 1.1, 9 * dpr(), 22 * dpr());
+  const ctx = lane.ctx, d = U[u.type], s = dpr(), r = (d.r / 11) * clamp(11 * k * 1.1, 9 * s, 22 * s);
   const dir = u.side === 0 ? 1 : -1, color = u.side === 0 ? COL.seal : COL.indigo;
-  const bob = reduceMotion ? 0 : Math.abs(Math.sin(u.bob)) * r * 0.18;
+  const bounce = STYLE === 'silhouette' ? 0.32 : 0.18;
+  const bob = reduceMotion ? 0 : Math.abs(Math.sin(u.bob)) * r * bounce;
   const lunge = u.lunge ? dir * r * 0.35 : 0;
-  ctx.save(); ctx.translate(X + lunge, gy - r - bob);
-  ctx.fillStyle = color; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(1.2, r * 0.13); ctx.lineJoin = 'round';
-  if (u.type === 'inf') { blobPath(ctx, r, u.seed, 10); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(dir * r * 0.2, -r * 0.2); ctx.lineTo(dir * r * 1.6, -r * 0.9); ctx.stroke(); }
-  else if (u.type === 'rng') { ctx.beginPath(); ctx.moveTo(0, -r * 1.25); ctx.lineTo(r, r); ctx.lineTo(-r, r); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(dir * r * 0.6, -r * 0.1, r * 0.9, -Math.PI / 2.4, Math.PI / 2.4, dir < 0); ctx.stroke(); }
-  else { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-r, -r * 0.95, r * 2, r * 1.95, r * 0.35); else ctx.rect(-r, -r * 0.95, r * 2, r * 1.95); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = COL.ink; ctx.fillRect(dir > 0 ? r * 0.55 : -r * 0.95, -r * 0.7, r * 0.4, r * 1.3); }
+  const pop = clamp((G.t - u.born) / 0.25, 0, 1);
+  ctx.save(); ctx.translate(X + lunge, gy - r - bob); ctx.scale(0.4 + 0.6 * pop, 0.4 + 0.6 * pop);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  if (STYLE === 'ink') {
+    ctx.fillStyle = color; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(1.2, r * 0.13);
+    bodyPath(ctx, u.type, r, u.seed); ctx.fill(); ctx.stroke();
+    weapon(ctx, u.type, r, dir, COL.ink);
+  } else if (STYLE === 'silhouette') {
+    ctx.fillStyle = COL.ink; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(1.5, r * 0.16);
+    bodyPath(ctx, u.type, r, u.seed); ctx.fill();
+    weapon(ctx, u.type, r, dir, COL.ink);
+    // band in the army's color, then one big eye
+    ctx.fillStyle = color; ctx.fillRect(-r * 0.8, -r * (u.type === 'rng' ? 0.35 : 0.78), r * 1.6, r * 0.26);
+    const ex = dir * r * 0.25, ey = u.type === 'rng' ? r * 0.12 : -r * 0.12;
+    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(ex, ey, r * 0.36, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.arc(ex + dir * r * 0.13, ey, r * 0.16, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.shadowColor = color; ctx.shadowBlur = r * 0.9; ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.4, r * 0.14);
+    ctx.globalAlpha = 0.2; ctx.fillStyle = color; bodyPath(ctx, u.type, r, u.seed); ctx.fill();
+    ctx.globalAlpha = 1; ctx.stroke();
+    weapon(ctx, u.type, r, dir, color);
+    ctx.shadowBlur = 0; ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.arc(dir * r * 0.25, -r * 0.1, r * 0.13, 0, Math.PI * 2); ctx.fill();
+  }
   if (u.hp < u.max) {
-    const bw = r * 2; ctx.fillStyle = COL['paper-deep']; ctx.fillRect(-bw / 2, -r * 1.75, bw, 3 * dpr());
-    ctx.fillStyle = color; ctx.fillRect(-bw / 2, -r * 1.75, bw * u.hp / u.max, 3 * dpr());
+    ctx.shadowBlur = 0; const bw = r * 2;
+    ctx.fillStyle = COL['paper-deep']; ctx.fillRect(-bw / 2, -r * 1.8, bw, 3 * s);
+    ctx.fillStyle = color; ctx.fillRect(-bw / 2, -r * 1.8, bw * u.hp / u.max, 3 * s);
   }
   ctx.restore();
 }
-const dpr = () => Math.min(2, window.devicePixelRatio || 1);
+function weapon(ctx, type, r, dir, col) {
+  ctx.strokeStyle = col; ctx.fillStyle = col;
+  if (type === 'inf') { ctx.beginPath(); ctx.moveTo(dir * r * 0.2, -r * 0.2); ctx.lineTo(dir * r * 1.6, -r * 0.9); ctx.stroke(); }
+  else if (type === 'rng') { ctx.beginPath(); ctx.arc(dir * r * 0.6, -r * 0.1, r * 0.9, -Math.PI / 2.4, Math.PI / 2.4, dir < 0); ctx.stroke(); }
+  else if (STYLE !== 'overtone') ctx.fillRect(dir > 0 ? r * 0.55 : -r * 0.95, -r * 0.7, r * 0.4, r * 1.3);
+  else { ctx.beginPath(); ctx.moveTo(dir * r * 0.75, -r * 0.7); ctx.lineTo(dir * r * 0.75, r * 0.6); ctx.stroke(); }
+}
 function drawLane() {
   const cv = lane.cv, ctx = lane.ctx;
-  if (sizeCanvas(cv) || !lane.bg) lane.bg = makeBg(cv.width, cv.height);
-  const W = cv.width, H = cv.height, gy = H * 0.82, padX = 8 * dpr();
+  if (sizeCanvas(cv) || !lane.bg || lane.bgStyle !== STYLE) { lane.bg = makeBg(cv.width, cv.height); lane.bgStyle = STYLE; }
+  const W = cv.width, H = cv.height, gy = H * 0.82, s = dpr(), padX = 8 * s;
   const k = (W - padX * 2) / LANE.len, X = x => padX + x * k;
   ctx.drawImage(lane.bg, 0, 0);
-  const gs = clamp(H / (190 * dpr()), 0.55, 1.6) * dpr();
-  drawGate(X(LANE.youX), gy, gs, COL.seal, G.hp[0] / LANE.baseHp);
-  drawGate(X(LANE.foeX), gy, gs, COL.indigo, G.hp[1] / LANE.baseHp);
-  // drone thread rising from your gate
+  const gs = clamp(H / (190 * s), 0.55, 1.6) * s;
+  drawGate(0, X(LANE.youX), gy, gs, G.hp[0] / LANE.baseHp);
+  drawGate(1, X(LANE.foeX), gy, gs, G.hp[1] / LANE.baseHp);
+  // note rings rising from your gate: one per note the game counted
+  for (const r of G.rings) {
+    const p = r.age / 0.9, col = degCol(r.deg) || (r.deg < 0 || r.oct < 0 ? COL.seal : OCT()[Math.min(Math.max(r.oct, 0), 2)]);
+    ctx.save(); ctx.globalAlpha = (1 - p) * 0.8; ctx.strokeStyle = col; ctx.lineWidth = 2 * s;
+    if (STYLE === 'overtone') { ctx.shadowColor = col; ctx.shadowBlur = 10 * s; }
+    ctx.beginPath(); ctx.arc(X(LANE.youX), gy - 60 * gs, (8 + p * 34) * s, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
   if (G.drone && G.drone.ok) {
-    const t = now() / 1000, x0 = X(LANE.youX), amp = 6 * dpr() * G.drone.acc;
-    ctx.save(); ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.85; ctx.lineWidth = 2 * dpr(); ctx.beginPath();
-    for (let i = 0; i <= 40; i++) { const yy = gy - 75 * gs - i * (H * 0.012); const xx = x0 + Math.sin(i * 0.5 - t * 8) * amp; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+    const t = now() / 1000, x0 = X(LANE.youX), amp = 6 * s * G.drone.acc, col = degCol(G.drone.deg) || COL.gold;
+    ctx.save(); ctx.strokeStyle = col; ctx.globalAlpha = 0.9; ctx.lineWidth = 2 * s;
+    if (STYLE === 'overtone') { ctx.shadowColor = col; ctx.shadowBlur = 12 * s; }
+    ctx.beginPath();
+    for (let i = 0; i <= 40; i++) { const yy = gy - 78 * gs - i * (H * 0.012); const xx = x0 + Math.sin(i * 0.5 - t * 8) * amp; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
     ctx.stroke(); ctx.restore();
   }
   const sorted = G.units.slice().sort((a, b) => a.side - b.side);
   for (const u of sorted) drawUnit(u, X(u.x), gy, k);
-  ctx.fillStyle = COL.ink;
   for (const p of G.proj) {
     const span = Math.abs(p.toX - p.x0) || 1, prog = clamp(Math.abs(p.x - p.x0) / span, 0, 1);
-    const yy = gy - 16 * dpr() - Math.sin(prog * Math.PI) * 18 * dpr();
-    ctx.beginPath(); ctx.arc(X(p.x), yy, 2.4 * dpr(), 0, Math.PI * 2); ctx.fill();
+    const yy = gy - 16 * s - Math.sin(prog * Math.PI) * 18 * s, col = p.side ? COL.indigo : COL.seal;
+    ctx.save();
+    if (STYLE === 'silhouette') { const a = Math.atan2(-Math.cos(prog * Math.PI) * 18, (p.toX - p.x0) * k / span * 30); ctx.translate(X(p.x), yy); ctx.rotate(p.toX > p.x0 ? a : Math.PI - a); ctx.strokeStyle = COL.ink; ctx.lineWidth = 2 * s; ctx.beginPath(); ctx.moveTo(-6 * s, 0); ctx.lineTo(6 * s, 0); ctx.stroke(); }
+    else { ctx.fillStyle = STYLE === 'overtone' ? col : COL.ink; if (STYLE === 'overtone') { ctx.shadowColor = col; ctx.shadowBlur = 10 * s; } ctx.beginPath(); ctx.arc(X(p.x), yy, 2.6 * s, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
   }
-  for (const f of G.fx) { ctx.globalAlpha = 1 - f.age / f.life; ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(X(f.x), gy + f.y * dpr(), f.r * dpr(), 0, Math.PI * 2); ctx.fill(); }
-  ctx.globalAlpha = 1;
-  // wave + clock
+  if (STYLE === 'overtone') ctx.globalCompositeOperation = 'lighter';
+  for (const f of G.fx) { ctx.globalAlpha = 1 - f.age / f.life; ctx.fillStyle = STYLE === 'silhouette' ? COL.ink : f.color; ctx.beginPath(); ctx.arc(X(f.x), gy + f.y * s, f.r * s, 0, Math.PI * 2); ctx.fill(); }
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   const mm = Math.floor(G.t / 60), ss = String(Math.floor(G.t % 60)).padStart(2, '0');
-  ctx.font = `500 ${12 * dpr()}px ${css.getPropertyValue('--font-mono')}`; ctx.fillStyle = COL['ink-soft']; ctx.textAlign = 'center';
-  ctx.fillText('Wave ' + G.wave + ' · ' + mm + ':' + ss, W / 2, 18 * dpr());
-  if (!G.running && !G.over) {
-    ctx.fillStyle = COL.ink; ctx.font = `800 ${26 * dpr()}px ${css.getPropertyValue('--font-display')}`;
-    ctx.fillText('Paused', W / 2, H * 0.45);
-  }
+  ctx.font = `500 ${12 * s}px ${FONT.mono}`; ctx.fillStyle = STYLE === 'silhouette' ? COL.ink : COL['ink-soft']; ctx.textAlign = 'center';
+  ctx.fillText('Wave ' + G.wave + ' · ' + mm + ':' + ss, W / 2, 18 * s);
+  if (!G.running && !G.over) { ctx.fillStyle = COL.ink; ctx.font = `${FONT.dw} ${28 * s}px ${FONT.display}`; ctx.fillText('Paused', W / 2, H * 0.45); }
 }
 
 /* ================= Drawing: meter ================= */
@@ -828,48 +982,42 @@ function drawMeter(cv) {
   const y = semi => H - bot - (semi / 12) * (H - top - bot);
   const c = IN.cur, stable = c ? noteInfo(c.midi) : null;
   let pos = null, oct = 0;
-  if (IN.disp != null && IN.dispAlpha > 0) {
-    const rel = IN.disp - S.home; oct = Math.floor((Math.round(IN.disp) - S.home) / 12);
-    pos = clamp(rel - oct * 12, -0.5, 12.4);
-  }
-  const ocol = oct < 0 ? COL['ink-faint'] : OCT_COL[Math.min(oct, 2)];
-  // octave label
-  ctx.font = `700 ${10.5 * s}px ${css.getPropertyValue('--font-body')}`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = pos == null ? COL['ink-faint'] : ocol;
+  if (IN.disp != null && IN.dispAlpha > 0) { oct = Math.floor((Math.round(IN.disp) - S.home) / 12); pos = clamp(IN.disp - S.home - oct * 12, -0.5, 12.4); }
+  const stableDeg = stable && stable.oct >= 0 ? stable.deg : -1;
+  const ocol = oct < 0 ? COL['ink-faint'] : (degCol(stableDeg) || OCT()[Math.min(oct, 2)]);
+  ctx.font = `700 ${10.5 * s}px ${FONT.body}`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = pos == null ? COL['ink-faint'] : (oct < 0 ? COL['ink-faint'] : OCT()[Math.min(oct, 2)]);
   ctx.fillText(pos == null ? 'OCTAVE' : (oct < 0 ? 'BELOW HOME' : 'OCTAVE ' + (oct + 1)), 0, 12 * s);
-  // fill
-  if (pos != null) { ctx.globalAlpha = 0.28 * IN.dispAlpha; ctx.fillStyle = ocol; ctx.fillRect(tx, y(Math.max(0, pos)), tw, y(0) - y(Math.max(0, pos))); ctx.globalAlpha = 1; }
-  // track
-  ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.5 * s; ctx.strokeRect(tx, y(12), tw, y(0) - y(12));
-  // chromatic dots
+  if (pos != null) { ctx.globalAlpha = 0.3 * IN.dispAlpha; ctx.fillStyle = ocol; ctx.fillRect(tx, y(Math.max(0, pos)), tw, y(0) - y(Math.max(0, pos))); ctx.globalAlpha = 1; }
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = (STYLE === 'silhouette' ? 2.5 : STYLE === 'overtone' ? 1 : 1.5) * s;
+  ctx.strokeRect(tx, y(12), tw, y(0) - y(12));
   ctx.fillStyle = COL['ink-faint'];
   for (let i = 1; i < 12; i++) if (!FLOOR.steps.includes(i)) { ctx.beginPath(); ctx.arc(tx + tw / 2, y(i), 1.6 * s, 0, Math.PI * 2); ctx.fill(); }
-  // degree hashes
   ctx.textBaseline = 'middle';
   const marks = FLOOR.steps.map((st, d) => [st, d]).concat([[12, 0]]);
   for (const [st, d] of marks) {
-    const yy = y(st), on = stable && stable.deg === d && stable.oct >= 0 && (st === 12 ? false : true);
-    ctx.strokeStyle = COL.ink; ctx.lineWidth = (on ? 3 : 1.5) * s;
-    ctx.beginPath(); ctx.moveTo(tx - 4 * s, yy); ctx.lineTo(tx + tw + 6 * s, yy); ctx.stroke();
-    ctx.fillStyle = on ? COL.ink : COL['ink-soft'];
-    ctx.font = `500 ${12.5 * s}px ${css.getPropertyValue('--font-mono')}`; ctx.fillText(String(d + 1), tx + tw + 10 * s, yy);
-    ctx.font = `${on ? 700 : 400} ${11 * s}px ${css.getPropertyValue('--font-body')}`; ctx.fillText(phonetic(spellDegree(d)), tx + tw + 24 * s, yy);
+    const yy = y(st), on = stableDeg === d && st !== 12, dc = degCol(d);
+    ctx.strokeStyle = dc || COL.ink; ctx.lineWidth = (on ? 3.2 : 1.5) * s;
+    if (dc && on) { ctx.shadowColor = dc; ctx.shadowBlur = 8 * s; }
+    ctx.beginPath(); ctx.moveTo(tx - 4 * s, yy); ctx.lineTo(tx + tw + 6 * s, yy); ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.fillStyle = dc || (on ? COL.ink : COL['ink-soft']);
+    ctx.font = `500 ${12.5 * s}px ${FONT.mono}`; ctx.fillText(String(d + 1), tx + tw + 10 * s, yy);
+    ctx.font = `${on ? 700 : 400} ${11 * s}px ${FONT.body}`; ctx.fillStyle = on ? COL.ink : COL['ink-soft']; ctx.fillText(phonetic(spellDegree(d)), tx + tw + 24 * s, yy);
   }
-  // indicator
   if (pos != null) {
     ctx.globalAlpha = IN.dispAlpha; ctx.fillStyle = ocol; ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.5 * s;
-    ctx.beginPath(); ctx.arc(tx + tw / 2, y(pos), 7 * s, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (STYLE === 'overtone') { ctx.shadowColor = ocol; ctx.shadowBlur = 14 * s; }
+    ctx.beginPath(); ctx.arc(tx + tw / 2, y(pos), 7 * s, 0, Math.PI * 2); ctx.fill(); if (STYLE !== 'overtone') ctx.stroke();
+    ctx.shadowBlur = 0;
     if (c && c.drone) { ctx.strokeStyle = COL.gold; ctx.lineWidth = 2.5 * s; ctx.beginPath(); ctx.arc(tx + tw / 2, y(pos), 11 * s, 0, Math.PI * 2); ctx.stroke(); }
     ctx.globalAlpha = 1;
   }
-  ctx.textBaseline = 'alphabetic'; ctx.fillStyle = COL['ink-faint']; ctx.font = `400 ${10 * s}px ${css.getPropertyValue('--font-body')}`;
+  ctx.textBaseline = 'alphabetic'; ctx.fillStyle = COL['ink-faint']; ctx.font = `400 ${10 * s}px ${FONT.body}`;
   ctx.fillText('home 1', 0, H - 2 * s);
 }
 
 /* ================= Readouts ================= */
-function makeReadout(root) {
-  return { phon: $('.phon', root), nm: $('.nm', root), deg: $('.deg', root), tuner: $('.tuner', root), needle: $('.needle', root), cents: $('.cents', root), last: {} };
-}
+function makeReadout(root) { return { phon: $('.phon', root), nm: $('.nm', root), deg: $('.deg', root), tuner: $('.tuner', root), needle: $('.needle', root), cents: $('.cents', root), last: {} }; }
 const readS = makeReadout($('#readS')), readB = makeReadout($('#readB'));
 function setText(el, v, cache, key) { if (cache[key] !== v) { cache[key] = v; el.textContent = v; } }
 function updateReadout(R) {
@@ -877,16 +1025,17 @@ function updateReadout(R) {
   if (c) {
     const info = noteInfo(c.midi);
     setText(R.phon, info.phon, R.last, 'p');
+    const dc = degCol(info.oct >= 0 ? info.deg : -1) || ''; if (R.last.col !== dc) { R.last.col = dc; R.phon.style.color = dc; }
     setText(R.nm, pretty(info.name) + info.octNum, R.last, 'n');
-    const dl = info.oct < 0 ? 'Below home 1' : info.deg < 0 ? 'Out of key' : 'Degree ' + (info.deg + 1) + ' · octave ' + (info.oct + 1) + (c.drone ? ' · droning' : '');
-    setText(R.deg, dl, R.last, 'd');
+    setText(R.deg, info.oct < 0 ? 'Below home 1' : info.deg < 0 ? 'Out of key' : 'Degree ' + (info.deg + 1) + ' · octave ' + (info.oct + 1) + (c.drone ? ' · droning' : ''), R.last, 'd');
     R.tuner.classList.add('on');
     const cents = c.pad ? 0 : Math.round(c.cents);
     R.needle.style.left = (50 + clamp(cents, -50, 50)) + '%';
     setText(R.cents, (cents > 0 ? '+' : cents < 0 ? '−' : '±') + Math.abs(cents) + '¢', R.last, 'c');
-    R.cents.className = 'cents kv ' + (Math.abs(cents) <= 10 ? 'in' : Math.abs(cents) > 25 ? 'off' : '');
+    R.cents.className = 'cents kv ' + (Math.abs(cents) <= 20 ? 'in' : Math.abs(cents) > 35 ? 'off' : '');
   } else {
     setText(R.phon, '—', R.last, 'p'); setText(R.nm, '', R.last, 'n');
+    if (R.last.col) { R.last.col = ''; R.phon.style.color = ''; }
     setText(R.deg, S.mic ? 'Listening…' : (screen === 'battle' ? 'Mic off · use the tap pad' : 'Start the microphone to see your pitch.'), R.last, 'd');
     R.tuner.classList.remove('on');
   }
@@ -897,9 +1046,10 @@ function chipHTML(d, cls) { return '<span class="chip ' + (cls || '') + '"><b>' 
 function buildCards() {
   $('#cards').innerHTML = ORDER.map(k => {
     const u = U[k];
-    return '<button type="button" class="card" data-u="' + k + '" aria-label="Hear the ' + u.name + ' summon song"><span style="color:' + COL.seal + '">' + ICON[k] + '</span><span class="uname">' + u.name +
+    return '<button type="button" class="card" data-u="' + k + '" aria-label="Hear the ' + u.name + ' summon song"><span class="ico">' + ICON[k] + '</span><span class="uname">' + u.name +
       '</span><span class="chips">' + u.motif.map(d => chipHTML(d)).join('') + '</span><span class="cost kv">' + u.cost + '</span></button>';
   }).join('');
+  document.querySelectorAll('.card .ico').forEach(el => el.style.color = COL.seal);
 }
 function buildPad() {
   const semis = FLOOR.steps.concat([12]);
@@ -908,60 +1058,70 @@ function buildPad() {
     return '<button class="key' + (d === 0 ? ' tonic' : '') + '" data-semi="' + st + '" aria-label="Degree ' + (d + 1) + '"><b>' + (d + 1) + (i === 7 ? '′' : '') + '</b><small>' + phonetic(spellDegree(d)) + '</small></button>';
   }).join('');
 }
-function pulseCard(k, cls) {
-  const el = document.querySelector('.card[data-u="' + k + '"]'); if (!el) return;
-  el.classList.remove('ok', 'fail'); void el.offsetWidth; el.classList.add(cls);
-}
+function pulseCard(k, cls) { const el = document.querySelector('.card[data-u="' + k + '"]'); if (!el) return; el.classList.remove('ok', 'fail'); void el.offsetWidth; el.classList.add(cls); }
 let toastTimer = null;
-function toast(msg) {
-  const el = $('#toast'); el.textContent = msg; el.classList.add('on');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 1800);
-}
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2200); }
 const ui = { last: {} };
 function updateBattleUI() {
   $('#hpYou').style.transform = 'scaleX(' + (G.hp[0] / LANE.baseHp) + ')';
   $('#hpFoe').style.transform = 'scaleX(' + (G.hp[1] / LANE.baseHp) + ')';
   setText($('#manaNum'), String(Math.floor(G.mana)), ui.last, 'mana');
   $('#manaBar').style.transform = 'scaleX(' + (G.mana / G.manaMax) + ')';
-  // heard
   const hk = G.motif.map(m => m.deg).join(',');
   if (ui.last.heard !== hk) {
     ui.last.heard = hk;
-    const longest = 3;
-    $('#heard').innerHTML = G.motif.length ? G.motif.map(m => chipHTML(m.deg, 'hit')).join('') + Array(longest - G.motif.length).fill('<span class="chip ghost"><b>·</b><small>&nbsp;</small></span>').join('')
+    $('#heard').innerHTML = G.motif.length ? G.motif.map(m => chipHTML(m.deg, 'hit')).join('') + Array(3 - G.motif.length).fill('<span class="chip ghost"><b>·</b><small>&nbsp;</small></span>').join('')
       : '<span class="chip ghost"><b>1</b><small>start</small></span>';
     for (const k of ORDER) {
-      const card = document.querySelector('.card[data-u="' + k + '"]'), chips = card.querySelectorAll('.chip');
+      const chips = document.querySelectorAll('.card[data-u="' + k + '"] .chip');
       const ok = G.motif.length && prefixOk(U[k].motif, G.motif);
       chips.forEach((ch, i) => ch.classList.toggle('hit', !!ok && i < G.motif.length));
     }
   }
+  const tk = G.trail.map(n => n.txt).join(' ');
+  if (ui.last.trail !== tk) { ui.last.trail = tk; $('#trail').innerHTML = G.trail.length ? 'Last notes: ' + G.trail.map(n => '<b class="' + (n.bad ? 'x' : '') + '">' + n.txt + '</b>').join(' ') : 'Last notes: none yet'; }
   for (const k of ORDER) document.querySelector('.card[data-u="' + k + '"]').classList.toggle('afford', G.mana >= U[k].cost);
-  // drone line
   let dl, cls = '';
   if (G.drone && G.drone.ok) { dl = 'Droning ' + (G.drone.deg + 1) + ' · +' + G.drone.rate.toFixed(1) + ' mana/s · ' + Math.round(G.drone.acc * 100) + '% in tune'; cls = 'on'; }
   else if (G.drone) { dl = G.drone.below ? 'Below home 1 · no mana' : 'Out of key · no mana'; cls = 'warn'; }
   else dl = 'Hold a note to drone. Droning 1 earns the most mana.';
   setText($('#droneLine'), dl, ui.last, 'drone');
-  const el = $('#droneLine'); if (ui.last.dcls !== cls) { ui.last.dcls = cls; el.className = 'drone-line ' + cls; }
+  if (ui.last.dcls !== cls) { ui.last.dcls = cls; $('#droneLine').className = 'drone-line ' + cls; }
+}
+
+/* ================= Style switching ================= */
+function buildStylePick(el) {
+  el.innerHTML = STYLE_ORDER.map(k => '<button type="button" role="radio" data-style="' + k + '" aria-checked="false">' + STYLES[k].label + '</button>').join('');
+  el.addEventListener('click', e => { const b = e.target.closest('[data-style]'); if (b) applyStyle(b.dataset.style); });
+}
+function applyStyle(name) {
+  STYLE = STYLES[name] ? name : 'ink';
+  document.documentElement.setAttribute('data-style', STYLE);
+  readColors(); lane.bg = null; store.set('style', STYLE);
+  document.querySelectorAll('.style-pick [data-style]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.style === STYLE)));
+  $('#styleDesc').textContent = STYLES[STYLE].desc;
+  $('#styleBtn').textContent = 'Style: ' + STYLES[STYLE].label;
+  document.querySelectorAll('.card .ico').forEach(el => el.style.color = COL.seal);
+  readS.last = {}; readB.last = {};
 }
 
 /* ================= Setup UI ================= */
+buildStylePick($('#stylePickS'));
+applyStyle(store.get('style', 'ink'));
 const sel = $('#presetSel');
 sel.innerHTML = PRESETS.map(p => '<option value="' + p.id + '">' + p.label + '</option>').join('');
 applyPreset(S.preset, S.low != null);
 sel.value = S.preset;
 function refreshLabels() {
   const lowI = noteInfo(S.low), homeI = noteInfo(S.home);
-  const lowName = pretty(lowI.name) + lowI.octNum;
-  $('#lowStatus').innerHTML = 'Lowest note <b class="kv">' + lowName + '</b> · home 1 is <b class="kv">' + pretty(homeI.name) + homeI.octNum + '</b> (' + homeI.phon + ')';
+  $('#lowStatus').innerHTML = 'Lowest note <b class="kv">' + pretty(lowI.name) + lowI.octNum + '</b> · home 1 is <b class="kv">' + pretty(homeI.name) + homeI.octNum + '</b> (' + homeI.phon + ')';
   $('#transNote').textContent = S.trans === 'C' ? '' : 'Names are written for a ' + TRANS[S.trans].label + ' instrument. The game still hears concert pitch.';
   $('#refBtn').textContent = 'Reference · ' + phonetic(spellDegree(0));
   $('#refSetupBtn').textContent = 'Play reference · ' + phonetic(spellDegree(0));
   const n = d => '<b>' + U[d].motif.map(x => x + 1).join('-') + '</b>';
   $('#howto').innerHTML = [
-    '<b>Drone</b> by holding any note for about a second. Droning 1 earns 10 mana a second and other degrees earn 4. Staying in tune keeps the full rate.',
-    '<b>Summon</b> with three short notes that start on your home 1 (' + homeI.phon + '): ' + n('inf') + ' Infantry (30), ' + n('rng') + ' Ranged (45), ' + n('hvy') + ' Heavy (70). Keep each note shorter than a second and leave less than about 2 seconds between notes.',
+    '<b>Drone</b> by holding any note for about a second. Droning 1 earns 10 mana a second and other degrees earn 4. Staying within about 20 cents keeps the full rate.',
+    '<b>Summon</b> with three notes that start on your home 1, ' + label(homeI) + ': ' + n('inf') + ' Infantry (30), ' + n('rng') + ' Ranged (45), ' + n('hvy') + ' Heavy (70). Keep each note under a second, with less than about 2 seconds between notes.',
     '<b>Reference</b> plays home 1 whenever you press it.',
     '<b>Win</b> by breaking the enemy gate before they break yours. A wave arrives every 50 seconds.',
   ].map(s => '<li>' + s + '</li>').join('');
@@ -969,7 +1129,6 @@ function refreshLabels() {
 }
 refreshLabels();
 if (S.bleedRms != null) $('#bleedStatus').textContent = S.bleedRms > 0 ? 'Last check: the mic heard the speaker. The game ignores its own reference while it plays.' : 'Last check: the mic barely heard the speaker.';
-
 $('#songRow').insertAdjacentHTML('beforeend', ORDER.map(k => '<button type="button" class="btn small" data-song="' + k + '">' + U[k].name + ' · ' + U[k].motif.map(d => d + 1).join('-') + '</button>').join(''));
 $('#songRow').addEventListener('click', e => { const b = e.target.closest('[data-song]'); if (b) playSong(b.dataset.song); });
 $('#cards').addEventListener('click', e => {
@@ -981,6 +1140,9 @@ const volEl = $('#vol');
 const showVol = () => { $('#volOut').textContent = Math.round(S.vol / 1.8 * 100) + '%'; };
 volEl.value = S.vol; showVol();
 volEl.addEventListener('input', () => { S.vol = +volEl.value; if (master) master.gain.value = S.vol; store.set('vol', S.vol); showVol(); });
+$('#drumsChk').checked = S.drums;
+$('#drumsChk').addEventListener('change', e => { S.drums = e.target.checked; store.set('drums', S.drums); });
+let resumable = false;
 sel.addEventListener('change', () => { resumable = false; $('#enterBtn').textContent = 'Enter battle'; applyPreset(sel.value, false); store.set('preset', S.preset); store.set('low', S.low); refreshLabels(); });
 
 $('#micBtn').addEventListener('click', async () => {
@@ -997,7 +1159,7 @@ $('#micBtn').addEventListener('click', async () => {
   } catch (e) {
     st.className = 'status bad';
     if (e.name === 'NotAllowedError' || e.name === 'SecurityError') st.textContent = 'The microphone was blocked. Allow it in your browser\'s site settings, then reload the page.';
-    else if (e.name === 'NoMedia') st.textContent = 'This view can\'t reach a microphone. Open the file directly in Chrome, Edge, Firefox or Safari.';
+    else if (e.name === 'NoMedia') st.textContent = 'This view can\'t reach a microphone. Open the page directly in Chrome, Edge, Firefox or Safari.';
     else if (e.name === 'NotFoundError') st.textContent = 'No microphone was found. Plug one in and try again.';
     else st.textContent = 'The microphone didn\'t start (' + (e.message || e.name) + ').';
   }
@@ -1010,10 +1172,7 @@ $('#lowBtn').addEventListener('click', () => {
 });
 function detectLowTick(t) {
   const c = IN.cur;
-  if (c && !c.pad && t - c.start >= 900) {
-    DETECT_LOW.active = false; clearTimeout(DETECT_LOW.timer);
-    S.low = c.midi; recomputeHome(); store.set('low', S.low); refreshLabels(); $('#lowBtn').disabled = false;
-  }
+  if (c && !c.pad && t - c.start >= 900) { DETECT_LOW.active = false; clearTimeout(DETECT_LOW.timer); S.low = c.midi; recomputeHome(); store.set('low', S.low); refreshLabels(); $('#lowBtn').disabled = false; }
 }
 $('#bleedBtn').addEventListener('click', () => {
   const st = $('#bleedStatus'); st.className = 'status'; st.textContent = 'Playing the reference and listening… stay quiet for a moment.';
@@ -1031,10 +1190,7 @@ $('#bleedBtn').addEventListener('click', () => {
 $('#refSetupBtn').addEventListener('click', playRef);
 
 /* ================= Screen flow ================= */
-function showScreen(name) {
-  screen = name;
-  $('#setup').hidden = name !== 'setup'; $('#battle').hidden = name !== 'battle';
-}
+function showScreen(name) { screen = name; $('#setup').hidden = name !== 'setup'; $('#battle').hidden = name !== 'battle'; }
 function enterBattle() {
   resumable = false; $('#enterBtn').textContent = 'Enter battle';
   ensureAudio(); newGame(); ui.last = {}; lane.bg = null;
@@ -1044,7 +1200,6 @@ function enterBattle() {
   $('#padToggle').textContent = $('#pad').hidden ? 'Tap pad' : 'Hide pad';
   toast(S.mic ? 'Drone 1 to earn mana, then sing 1-3-5' : 'Hold key 1 to drone, then tap 1-3-5');
 }
-let resumable = false;
 $('#enterBtn').addEventListener('click', () => {
   if (resumable && G && !G.over) { resumable = false; showScreen('battle'); $('#enterBtn').textContent = 'Enter battle'; return; }
   enterBattle();
@@ -1057,10 +1212,10 @@ $('#setupBtn').addEventListener('click', () => {
 });
 $('#pauseBtn').addEventListener('click', () => { if (!G || G.over) return; G.running = !G.running; $('#pauseBtn').textContent = G.running ? 'Pause' : 'Resume'; });
 $('#refBtn').addEventListener('click', () => { playRef(); if (G) G.stats.refs++; });
+$('#styleBtn').addEventListener('click', () => { const nx = STYLE_ORDER[(STYLE_ORDER.indexOf(STYLE) + 1) % STYLE_ORDER.length]; applyStyle(nx); toast('Style: ' + STYLES[nx].label); });
 $('#padToggle').addEventListener('click', () => { const p = $('#pad'); p.hidden = !p.hidden; store.set('padOpen', !p.hidden); $('#padToggle').textContent = p.hidden ? 'Tap pad' : 'Hide pad'; });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.running && !G.over) { G.running = false; $('#pauseBtn').textContent = 'Resume'; } });
 
-// Tap pad
 const padEl = $('#pad');
 padEl.addEventListener('pointerdown', e => {
   const k = e.target.closest('.key'); if (!k) return; e.preventDefault();
@@ -1070,8 +1225,6 @@ padEl.addEventListener('pointerdown', e => {
 const padRelease = e => { const k = e.target.closest('.key'); if (!k || !k.classList.contains('down')) return; k.classList.remove('down'); padUp(+k.dataset.semi); };
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => padEl.addEventListener(ev, padRelease));
 padEl.addEventListener('contextmenu', e => e.preventDefault());
-
-// Keyboard: 1–7 degrees, 8 = 1 an octave up, R = reference
 const KEY_SEMI = { '1':0, '2':2, '3':4, '4':5, '5':7, '6':9, '7':11, '8':12 };
 document.addEventListener('keydown', e => {
   if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1082,6 +1235,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => {
   if (e.key in KEY_SEMI) { padUp(KEY_SEMI[e.key]); const b = padEl.querySelector('[data-semi="' + KEY_SEMI[e.key] + '"]'); if (b) b.classList.remove('down'); }
 });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { readColors(); lane.bg = null; });
 
 /* ================= Main loop ================= */
 let lastT = now();
@@ -1097,8 +1251,7 @@ function frame() {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-
-window.__tonality = { S, IN, U, get G() { return G; }, padDown, padUp, noteInfo, enterBattle };
+window.__tonality = { S, IN, U, get G() { return G; }, padDown, padUp, noteInfo, enterBattle, applyStyle };
 })();
 </script>
 </body>
