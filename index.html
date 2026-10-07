@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tonality Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a one-screen ink scroll. Battlefield lane on top, instrument console (mode meter, tuner, motif cards) below, tap pad along the bottom. One paper-and-ink look, chosen on purpose (Okami lean). */
+:root{
+  --paper:#E7E2D6;
+  --paper-deep:#D8D1C1;
+  --ink:#1C1915;
+  --ink-soft:#575148;
+  --ink-faint:#9C9486;
+  --seal:#B5381F;     /* you */
+  --indigo:#2B3B63;   /* enemy */
+  --gold:#9A7414;     /* mana */
+  --oct0:#2E6B5A;     /* octave colors on the meter */
+  --oct1:#B0631C;
+  --oct2:#6B3A7A;
+  --scrim:rgba(28,25,21,.5);
+  --font-display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
+  --font-body:"Zen Kaku Gothic New",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--font-body);-webkit-text-size-adjust:100%;overflow:hidden;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.btn{border:1.5px solid var(--ink);background:transparent;border-radius:var(--r);padding:.5em 1em;font-weight:500;line-height:1.3}
+.btn:hover:not(:disabled){background:var(--paper-deep)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.primary:hover:not(:disabled){background:var(--ink-soft)}
+.btn.seal{border-color:var(--seal);color:var(--seal)}
+.btn.small{padding:.28em .7em;font-size:13px}
+.btn.big{font-size:17px;padding:.6em 1.4em}
+.btn:disabled{opacity:.38;cursor:default}
+.kv{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* ---------- setup ---------- */
+#setup{height:100%;overflow-y:auto;padding-inline:16px;padding-block:28px 48px}
+.setup-inner{max-width:900px;margin:0 auto;display:grid;gap:26px}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--seal);font-weight:700;margin:0}
+.title-row h1{font-family:var(--font-display);font-weight:800;font-size:clamp(32px,6.5vw,52px);line-height:1.05;margin:.15em 0 0;text-wrap:balance}
+.title-row p.lede{margin:.5em 0 0;color:var(--ink-soft);max-width:60ch}
+.setup-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px 28px}
+@media (max-width:720px){.setup-grid{grid-template-columns:minmax(0,1fr)}}
+.panel{border-top:2px solid var(--ink);padding-top:12px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel h2{font-family:var(--font-display);font-size:21px;margin:0;font-weight:700;display:flex;align-items:baseline;gap:.5em}
+.step{font-family:var(--font-mono);font-size:12px;color:var(--seal);font-weight:500}
+.note{color:var(--ink-soft);font-size:13.5px;margin:0;max-width:62ch}
+.status{font-size:14px;margin:0;min-height:1.5em}
+.status.bad{color:var(--seal)}
+.status.good{color:var(--oct0)}
+select{font:inherit;padding:.45em .6em;border:1.5px solid var(--ink);border-radius:var(--r);background:var(--paper);color:var(--ink);max-width:100%;width:100%}
+.howto{margin:0;padding-left:1.15em;display:grid;gap:6px;color:var(--ink-soft);font-size:14.5px;max-width:70ch}
+.howto b{color:var(--ink)}
+.start-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;border-top:2px solid var(--ink);padding-top:18px}
+.instrument{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:stretch}
+.meter{display:block;width:100%;height:100%}
+.meter.tall{height:280px}
+
+/* readout (shared) */
+.readout{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:4px;align-content:start;min-width:0}
+.phon{font-family:var(--font-display);font-weight:800;font-size:44px;line-height:1;grid-row:span 2;min-width:2.2em}
+.nm{font-size:13px;color:var(--ink-soft);align-self:end}
+.deg{font-size:13px;color:var(--ink-soft);align-self:start}
+.tuner{grid-column:1/-1;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(5px);transition:opacity .12s,transform .12s}
+.tuner.on{opacity:1;transform:none}
+.scale{position:relative;flex:1 1 auto;max-width:190px;height:16px}
+.scale::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--ink)}
+.scale i.t{position:absolute;bottom:0;width:1px;height:6px;background:var(--ink-faint)}
+.scale i.mid{position:absolute;left:50%;bottom:0;width:1.5px;height:12px;margin-left:-.75px;background:var(--ink)}
+.needle{position:absolute;left:50%;bottom:0;width:3px;height:16px;margin-left:-1.5px;background:var(--seal);border-radius:1px}
+.cents{font-size:12.5px;min-width:5ch}
+.cents.in{color:var(--oct0)}
+.cents.off{color:var(--seal)}
+
+/* ---------- battle ---------- */
+#battle{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(110px,1fr) auto auto;
+  grid-template-areas:"hud" "lane" "console" "pad";padding-inline:16px;padding-block:8px 10px;gap:8px}
+.hud{grid-area:hud;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;gap:12px;align-items:center}
+.gate{display:grid;gap:3px;min-width:0}
+.gate .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gate.foe{text-align:right}
+.bar{height:9px;border:1.5px solid var(--ink);border-radius:2px;overflow:hidden;background:var(--paper-deep)}
+.bar i{display:block;height:100%;width:100%;background:var(--seal);transform-origin:left center}
+.gate.foe .bar i{background:var(--indigo);transform-origin:right center}
+.mana{display:grid;justify-items:center;gap:3px;min-width:88px}
+.mana-num{font-family:var(--font-mono);font-size:21px;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
+.mana .bar{width:88px;height:6px;border-width:1px}
+.mana .bar i{background:var(--gold)}
+.lane-wrap{grid-area:lane;position:relative;min-height:0;border:1.5px solid var(--ink);border-radius:2px;overflow:hidden;background:var(--paper)}
+#lane{position:absolute;inset:0;width:100%;height:100%;display:block}
+.toast{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:13.5px;background:var(--ink);color:var(--paper);padding:.28em .8em;border-radius:3px;
+  opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1}
+.console{grid-area:console;display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;min-height:0}
+.meter-wrap{position:relative;min-height:236px}
+.meter.abs{position:absolute;inset:0}
+.console-right{display:grid;gap:8px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr);grid-template-areas:"read" "heard" "drone" "cards" "btns"}
+.console-right .readout{grid-area:read}.heard-row{grid-area:heard}.drone-line{grid-area:drone}.cards{grid-area:cards}.btns{grid-area:btns}
+@media (min-width:900px) and (min-height:541px){
+  .console{grid-template-columns:110px minmax(0,1fr);max-width:1100px;width:100%;justify-self:center}
+  .console-right{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;grid-template-areas:"read cards" "heard cards" "drone btns"}
+}
+.console .phon{font-size:36px}
+.heard-row{display:flex;align-items:center;gap:8px;min-height:30px;flex-wrap:wrap}
+.heard{display:flex;gap:4px}
+.drone-line{font-size:13px;color:var(--ink-soft);min-height:1.5em}
+.drone-line.on{color:var(--gold);font-weight:700}
+.drone-line.warn{color:var(--seal)}
+.cards{display:grid;gap:6px}
+.card{display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:5px 10px;border:1.5px solid var(--ink-faint);border-radius:var(--r);transition:border-color .15s}
+.card.afford{border-color:var(--ink)}
+.card svg{width:16px;height:16px;display:block}
+.card .uname{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .cost{font-size:13px;color:var(--gold)}
+.card:not(.afford) .cost{color:var(--ink-faint)}
+.card.ok{animation:okPulse .6s}
+.card.fail{animation:failShake .35s}
+@keyframes okPulse{0%{background:var(--ink);color:var(--paper)}100%{background:transparent}}
+@keyframes failShake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.chips{display:flex;gap:4px}
+.chip{display:grid;justify-items:center;min-width:30px;padding:1px 4px;border-radius:4px;border:1px solid var(--ink-faint);line-height:1.15;background:var(--paper)}
+.chip b{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.chip small{font-size:10px;color:var(--ink-soft)}
+.chip.hit{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip.hit small{color:var(--paper)}
+.chip.ghost{border-style:dashed;color:var(--ink-faint)}
+.btns{gap:8px}
+.pad{grid-area:pad;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.key{display:grid;justify-items:center;align-content:center;height:54px;border:1.5px solid var(--ink);border-radius:var(--r);background:var(--paper);
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;padding:0}
+.key b{font-family:var(--font-mono);font-size:16px;font-weight:500}
+.key small{font-size:10.5px;color:var(--ink-soft)}
+.key.tonic{border-color:var(--seal)}
+.key.down{background:var(--ink);color:var(--paper)}
+.key.down small{color:var(--paper)}
+@media (orientation:landscape) and (max-height:540px){
+  #battle{grid-template-columns:minmax(0,1fr) minmax(0,380px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"hud hud" "lane console" "pad console"}
+  .console{overflow-y:auto}
+  .meter-wrap{min-height:200px}
+}
+@media (max-width:380px){.mana{min-width:70px}.mana .bar{width:70px}.hud{gap:8px}}
+
+/* overlays */
+.overlay{position:fixed;inset:0;background:var(--scrim);display:grid;place-items:center;padding:16px;z-index:10}
+.ov-card{background:var(--paper);border:2px solid var(--ink);border-radius:var(--r);padding:22px;max-width:420px;width:100%;display:grid;gap:12px}
+.ov-card h2{font-family:var(--font-display);font-size:32px;line-height:1.1;margin:0}
+.stats{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;margin:0}
+.stats dt{color:var(--ink-soft)}
+.stats dd{margin:0;font-family:var(--font-mono);text-align:right;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ======================= SETUP ======================= -->
+<section id="setup" aria-labelledby="setupTitle">
+  <div class="setup-inner">
+    <header class="title-row">
+      <p class="eyebrow">First demo · Floor 1 · C Ionian</p>
+      <h1 id="setupTitle">Tune the bard</h1>
+      <p class="lede">Check that the game hears you, set your range, then hold the lane with your voice or instrument.</p>
+    </header>
+
+    <div class="setup-grid">
+      <section class="panel">
+        <h2><span class="step">01</span>Microphone</h2>
+        <p class="note">Headphones give the cleanest result. Sound from a speaker can reach the mic.</p>
+        <div class="row"><button id="micBtn" class="btn primary">Start microphone</button></div>
+        <p id="micStatus" class="status">Microphone off.</p>
+      </section>
+
+      <section class="panel">
+        <h2><span class="step">02</span>Instrument and range</h2>
+        <label class="note" for="presetSel">Instrument or voice. This sets your lowest note and the note names you see.</label>
+        <select id="presetSel"></select>
+        <div class="row"><button id="lowBtn" class="btn" disabled>Detect my lowest note</button></div>
+        <p id="lowStatus" class="status"></p>
+        <p class="note" id="transNote"></p>
+      </section>
+
+      <section class="panel">
+        <h2><span class="step">03</span>Pitch check</h2>
+        <p class="note">Sing or play anything. The meter is spaced like the mode, so half steps sit closer together. Its color shows which octave above home 1 you're in.</p>
+        <div class="instrument">
+          <canvas id="meterS" class="meter tall" aria-label="Pitch meter"></canvas>
+          <div class="readout" id="readS">
+            <div class="phon">—</div><div class="nm kv"></div><div class="deg">Start the microphone to see your pitch.</div>
+            <div class="tuner"><div class="scale"><i class="t" style="left:0"></i><i class="t" style="left:25%"></i><i class="mid"></i><i class="t" style="left:75%"></i><i class="t" style="left:100%"></i><i class="needle"></i></div><span class="cents kv"></span></div>
+          </div>
+        </div>
+        <div class="row"><button id="refSetupBtn" class="btn seal">Play reference</button></div>
+      </section>
+
+      <section class="panel">
+        <h2><span class="step">04</span>Speaker check</h2>
+        <p class="note">Plays the reference tone and listens for it, so the game knows how much of its own sound reaches the mic.</p>
+        <div class="row"><button id="bleedBtn" class="btn" disabled>Test speaker bleed</button></div>
+        <p id="bleedStatus" class="status"></p>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h2>How floor 1 works</h2>
+      <ul class="howto" id="howto"></ul>
+    </section>
+
+    <div class="start-row">
+      <button id="enterBtn" class="btn primary big">Enter battle</button>
+      <p class="note">No mic? You can still play with the tap pad or number keys 1–8.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= BATTLE ======================= -->
+<section id="battle" hidden aria-label="Battle">
+  <header class="hud">
+    <div class="gate you"><span class="lbl">Your gate</span><div class="bar"><i id="hpYou"></i></div></div>
+    <div class="mana" aria-live="off"><span class="mana-num" id="manaNum">60</span><div class="bar"><i id="manaBar"></i></div><span class="lbl">Mana</span></div>
+    <div class="gate foe"><span class="lbl">Enemy gate</span><div class="bar"><i id="hpFoe"></i></div></div>
+    <button id="pauseBtn" class="btn small">Pause</button>
+  </header>
+
+  <div class="lane-wrap"><canvas id="lane" aria-label="Battlefield"></canvas><div id="toast" class="toast" role="status"></div></div>
+
+  <div class="console">
+    <div class="meter-wrap"><canvas id="meterB" class="meter abs" aria-label="Pitch meter"></canvas></div>
+    <div class="console-right">
+      <div class="readout" id="readB">
+        <div class="phon">—</div><div class="nm kv"></div><div class="deg"></div>
+        <div class="tuner"><div class="scale"><i class="t" style="left:0"></i><i class="t" style="left:25%"></i><i class="mid"></i><i class="t" style="left:75%"></i><i class="t" style="left:100%"></i><i class="needle"></i></div><span class="cents kv"></span></div>
+      </div>
+      <div class="heard-row"><span class="lbl">Heard</span><span class="heard" id="heard"></span></div>
+      <div class="drone-line" id="droneLine"></div>
+      <div class="cards" id="cards"></div>
+      <div class="row btns"><button id="refBtn" class="btn seal small">Reference</button><button id="padToggle" class="btn small">Tap pad</button><button id="setupBtn" class="btn small">Setup</button></div>
+    </div>
+  </div>
+
+  <div class="pad" id="pad" hidden></div>
+</section>
+
+<div class="overlay" id="endOv" hidden>
+  <div class="ov-card" role="dialog" aria-labelledby="endTitle">
+    <p class="eyebrow" id="endEyebrow"></p>
+    <h2 id="endTitle"></h2>
+    <dl class="stats" id="endStats"></dl>
+    <div class="row"><button id="againBtn" class="btn primary">Play again</button><button id="toSetupBtn" class="btn">Back to setup</button></div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const mod = (a, n) => ((a % n) + n) % n;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const now = () => performance.now();
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('tonality.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('tonality.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const css = getComputedStyle(document.documentElement);
+const COL = {};
+['paper','paper-deep','ink','ink-soft','ink-faint','seal','indigo','gold','oct0','oct1','oct2'].forEach(k => COL[k] = css.getPropertyValue('--' + k).trim());
+const OCT_COL = [COL.oct0, COL.oct1, COL.oct2];
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= Music theory ================= */
+const LETTERS = ['C','D','E','F','G','A','B'];
+const LETTER_PC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
+const PHON = { C:'See', D:'Dee', E:'Ee', F:'Ef', G:'Jee', A:'Ay', B:'Bee' };
+const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLATS  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const KEY_LETTER = ['C','D','D','E','E','F','G','G','A','A','B','B']; // tonic spelling: C Db D Eb E F Gb G Ab A Bb B
+const ACC_SUFFIX = { '#':'sh', 'b':'f', '##':'shsh', 'bb':'ff', '':'' };
+const phonetic = n => PHON[n[0]] + ACC_SUFFIX[n.slice(1)];
+const pretty = n => n[0] + n.slice(1).replace(/#/g, '♯').replace(/b/g, '♭');
+const midiToHz = m => 440 * Math.pow(2, (m - 69) / 12);
+const hzToMidi = f => 69 + 12 * Math.log2(f / 440);
+function parseNote(s) {
+  const m = /^([A-G])([#b]?)(-?\d)$/.exec(s);
+  return (+m[3] + 1) * 12 + LETTER_PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+}
+
+const TRANS = {
+  C:  { semis: 0, label: 'concert pitch' },
+  Bb: { semis: 2, label: 'B♭' },
+  Eb: { semis: 9, label: 'E♭' },
+};
+const FLOOR = { tonicPc: 0, steps: [0,2,4,5,7,9,11], label: 'C Ionian' };
+
+const PRESETS = [
+  { id:'voice-bass',     label:'Voice · bass',       low:'E2',  trans:'C' },
+  { id:'voice-baritone', label:'Voice · baritone',   low:'A2',  trans:'C' },
+  { id:'voice-tenor',    label:'Voice · tenor',      low:'C3',  trans:'C' },
+  { id:'voice-alto',     label:'Voice · alto',       low:'F3',  trans:'C' },
+  { id:'voice-soprano',  label:'Voice · soprano',    low:'C4',  trans:'C' },
+  { id:'guitar',         label:'Guitar',             low:'E2',  trans:'C' },
+  { id:'bass',           label:'Bass guitar',        low:'E1',  trans:'C' },
+  { id:'keys',           label:'Keys',               low:'C3',  trans:'C' },
+  { id:'flute',          label:'Flute',              low:'C4',  trans:'C' },
+  { id:'violin',         label:'Violin',             low:'G3',  trans:'C' },
+  { id:'cello',          label:'Cello',              low:'C2',  trans:'C' },
+  { id:'trumpet',        label:'Trumpet (B♭)',       low:'E3',  trans:'Bb' },
+  { id:'clarinet',       label:'Clarinet (B♭)',      low:'D3',  trans:'Bb' },
+  { id:'tenorsax',       label:'Tenor sax (B♭)',     low:'Ab2', trans:'Bb' },
+  { id:'altosax',        label:'Alto sax (E♭)',      low:'Db3', trans:'Eb' },
+];
+
+const S = {
+  preset: store.get('preset', 'voice-tenor'),
+  low: store.get('low', null),          // concert MIDI of lowest comfortable note
+  trans: 'C',
+  home: 48,                              // concert MIDI of home 1
+  bleedRms: store.get('bleedRms', null), // null = speaker check not run
+  mic: false,
+};
+
+function writtenTonicPc() { return mod(FLOOR.tonicPc + TRANS[S.trans].semis, 12); }
+function useFlats() { return [1,3,5,6,8,10].includes(writtenTonicPc()); }
+function spellDegree(d) {
+  const tpc = writtenTonicPc();
+  const L = LETTERS[(LETTERS.indexOf(KEY_LETTER[tpc]) + d) % 7];
+  const pc = mod(tpc + FLOOR.steps[d], 12);
+  const acc = mod(pc - LETTER_PC[L] + 6, 12) - 6;
+  return L + (acc === 1 ? '#' : acc === -1 ? 'b' : acc === 2 ? '##' : acc === -2 ? 'bb' : '');
+}
+function noteInfo(midi) {
+  const fromHome = midi - S.home;
+  const oct = Math.floor(fromHome / 12);
+  const deg = FLOOR.steps.indexOf(mod(fromHome, 12));
+  const wMidi = midi + TRANS[S.trans].semis;
+  const name = deg >= 0 ? spellDegree(deg) : (useFlats() ? FLATS : SHARPS)[mod(wMidi, 12)];
+  return { deg, oct, name, phon: phonetic(name), octNum: Math.floor(wMidi / 12) - 1 };
+}
+function applyPreset(id, keepLow) {
+  const p = PRESETS.find(x => x.id === id) || PRESETS[2];
+  S.preset = p.id; S.trans = p.trans;
+  if (!keepLow || S.low == null) S.low = parseNote(p.low);
+  recomputeHome();
+}
+function recomputeHome() { let h = S.low; while (mod(h, 12) !== FLOOR.tonicPc) h++; S.home = h; }
+
+/* ================= Audio ================= */
+let AC = null, master = null, noiseBuf = null, detector = null;
+const REF = { until: 0, pc: FLOOR.tonicPc };
+function ensureAudio() {
+  if (!AC) {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination);
+    noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * 0.5), AC.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function refHz() { let m = S.home; while (midiToHz(m) < 190) m += 12; return midiToHz(m); }
+function playRef() {
+  ensureAudio();
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'sine'; o.frequency.value = refHz();
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32, t + 0.04);
+  g.gain.setValueAtTime(0.32, t + 1.1); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.5);
+  o.connect(g).connect(master); o.start(t); o.stop(t + 1.55);
+  REF.until = now() + 1550 + 150; REF.pc = FLOOR.tonicPc;
+}
+let lastNoise = 0;
+function noise(dur, freq, q, vol, type) {
+  if (!AC) return;
+  const tn = now(); if (tn - lastNoise < 45) return; lastNoise = tn;
+  const t = AC.currentTime, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = noiseBuf; f.type = type || 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+  s.connect(f).connect(g).connect(master); s.start(t); s.stop(t + dur + 0.02);
+}
+const sfx = {
+  hit:    () => noise(0.06, 2200, 1.4, 0.10),
+  base:   () => noise(0.25, 180, 0.7, 0.32, 'lowpass'),
+  summon: () => noise(0.35, 900, 0.5, 0.20),
+  fail:   () => noise(0.14, 420, 2.0, 0.12),
+};
+function padTone(midi) {
+  ensureAudio();
+  let m = midi; while (midiToHz(m) < 130) m += 12;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'triangle'; o.frequency.value = midiToHz(m);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.16, t + 0.02);
+  o.connect(g).connect(master); o.start(t);
+  return { stop() { const t2 = AC.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(g.gain.value, t2); g.gain.exponentialRampToValueAtTime(0.0005, t2 + 0.15); o.stop(t2 + 0.2); } };
+}
+
+/* ================= Pitch detection (YIN on a 2x-decimated window) ================= */
+class Detector {
+  constructor(ctx, stream) {
+    this.src = ctx.createMediaStreamSource(stream);
+    this.an = ctx.createAnalyser(); this.an.fftSize = 4096; this.an.smoothingTimeConstant = 0;
+    this.src.connect(this.an);
+    this.buf = new Float32Array(4096); this.x = new Float32Array(2048); this.d = new Float32Array(1100);
+    this.sr = ctx.sampleRate / 2;
+  }
+  read(fMin) {
+    const b = this.buf, x = this.x, d = this.d, sr = this.sr;
+    this.an.getFloatTimeDomainData(b);
+    let s = 0; for (let i = 0; i < 4096; i++) s += b[i] * b[i];
+    const rms = Math.sqrt(s / 4096);
+    for (let i = 0; i < 2048; i++) x[i] = (b[2 * i] + b[2 * i + 1]) * 0.5;
+    const tauMax = Math.min(1000, Math.floor(sr / fMin)), tauMin = Math.max(2, Math.floor(sr / 2200));
+    const W = 2048 - tauMax;
+    d[0] = 1; let run = 0;
+    for (let tau = 1; tau <= tauMax; tau++) {
+      let sum = 0; for (let j = 0; j < W; j++) { const v = x[j] - x[j + tau]; sum += v * v; }
+      run += sum; d[tau] = run > 0 ? sum * tau / run : 1;
+    }
+    let tau = -1;
+    for (let t = tauMin; t <= tauMax; t++) {
+      if (d[t] < 0.15) { while (t + 1 <= tauMax && d[t + 1] < d[t]) t++; tau = t; break; }
+    }
+    if (tau < 0) return { rms, f: 0, clarity: 0 };
+    let bt = tau;
+    if (tau > 1 && tau < tauMax) { const a = d[tau - 1], c = d[tau + 1], den = a + c - 2 * d[tau]; if (den) bt = tau + 0.5 * (a - c) / den; }
+    return { rms, f: sr / bt, clarity: 1 - d[tau] };
+  }
+}
+
+/* ================= Note tracking ================= */
+const MIN_NOTE_MS = 80, RELEASE_MS = 90, DRONE_MS = 650, GAP_MS = 1400, CLARITY = 0.85;
+const IN = { cur: null, cand: null, candSince: 0, lostSince: 0, padUntil: 0, nf: 0.003, last: { midiF: null, rms: 0 }, disp: null, dispAlpha: 0 };
+const onNoteOn = [], onNoteOff = [];
+const emitOn = (n, t) => onNoteOn.forEach(f => f(n, t));
+const emitOff = (n, t) => onNoteOff.forEach(f => f(n, t));
+
+function feedMic(midiF, t) {
+  const n = midiF == null ? null : Math.round(midiF);
+  const c = IN.cur;
+  if (c && c.pad) return;
+  if (c && n === c.midi) {
+    c.lastSeen = t; c.cents = (midiF - n) * 100; c.cAbs = c.cAbs * 0.85 + Math.abs(c.cents) * 0.15;
+    IN.cand = null; IN.lostSince = 0; return;
+  }
+  if (c && !IN.lostSince) IN.lostSince = t;
+  if (n == null) IN.cand = null; else if (n !== IN.cand) { IN.cand = n; IN.candSince = t; }
+  if (IN.cand != null && t - IN.candSince >= MIN_NOTE_MS) {
+    if (c) { IN.cur = null; emitOff(c, IN.candSince); }
+    const cents = (midiF - IN.cand) * 100;
+    const nn = { midi: IN.cand, start: IN.candSince, lastSeen: t, cents, cAbs: Math.abs(cents), drone: false, pad: false };
+    IN.cur = nn; IN.cand = null; IN.lostSince = 0; emitOn(nn, nn.start); return;
+  }
+  if (c && ((IN.cand == null && t - IN.lostSince >= RELEASE_MS) || t - IN.lostSince >= RELEASE_MS + MIN_NOTE_MS)) {
+    IN.cur = null; IN.lostSince = 0; emitOff(c, t);
+  }
+}
+function padDown(semi) {
+  const t = now(), midi = S.home + semi;
+  if (IN.cur) { const c = IN.cur; IN.cur = null; if (c.snd) c.snd.stop(); emitOff(c, t); }
+  const nn = { midi, start: t, lastSeen: t, cents: 0, cAbs: 0, drone: false, pad: true, semi };
+  nn.snd = padTone(midi); IN.cur = nn; IN.cand = null; emitOn(nn, t);
+}
+function padUp(semi) {
+  const c = IN.cur;
+  if (c && c.pad && (semi == null || c.semi === semi)) { if (c.snd) c.snd.stop(); IN.cur = null; IN.padUntil = now() + 250; emitOff(c, now()); }
+}
+
+const DETECT_LOW = { active: false, timer: null };
+const BLEED = { active: false, frames: 0, hits: 0, rmsSum: 0, start: 0, end: 0 };
+
+function micFrame(t) {
+  const fMin = DETECT_LOW.active ? 30 : Math.max(30, midiToHz(S.low - 2) * 0.92);
+  const r = detector.read(fMin);
+  const tonal = r.f > 0 && r.clarity > CLARITY;
+  if (!tonal) IN.nf = Math.min(0.04, r.rms < IN.nf ? r.rms : IN.nf + (r.rms - IN.nf) * 0.002);
+  else if (r.rms < IN.nf) IN.nf = r.rms;
+  const gate = Math.max(0.004, IN.nf * 3);
+  let midiF = (r.f > 0 && r.rms > gate && r.clarity > CLARITY) ? hzToMidi(r.f) : null;
+  if (BLEED.active && t > BLEED.start + 150 && t < BLEED.end) {
+    BLEED.frames++;
+    if (midiF != null && mod(Math.round(midiF), 12) === REF.pc) { BLEED.hits++; BLEED.rmsSum += r.rms; }
+  }
+  // Known-pitch rejection: ignore our own reference tone unless the mic hears it louder than the measured bleed
+  if (midiF != null && t < REF.until && mod(Math.round(midiF), 12) === REF.pc && (S.bleedRms == null || r.rms < S.bleedRms * 1.8)) midiF = null;
+  IN.last.rms = r.rms;
+  if ((IN.cur && IN.cur.pad) || t < IN.padUntil) return;
+  IN.last.midiF = midiF;
+  feedMic(midiF, t);
+}
+function updateDisp() {
+  const c = IN.cur;
+  let target = null;
+  if (c && c.pad) target = c.midi;
+  else if (IN.last.midiF != null) target = IN.last.midiF;
+  if (target != null) {
+    if (IN.disp == null || Math.abs(target - IN.disp) > 6) IN.disp = target;
+    else IN.disp += (target - IN.disp) * 0.45;
+    IN.dispAlpha = 1;
+  } else IN.dispAlpha = Math.max(0, IN.dispAlpha - 0.06);
+}
+
+/* ================= Units and game ================= */
+const U = {
+  inf: { key:'inf', name:'Infantry', motif:[0,2,4], cost:30, hp:60,  dmg:8,  cd:0.8,  range:0,  speed:26, r:11 },
+  rng: { key:'rng', name:'Ranged',   motif:[0,1,5], cost:45, hp:36,  dmg:7,  cd:1.05, range:95, speed:22, r:10, proj:true },
+  hvy: { key:'hvy', name:'Heavy',    motif:[0,3,6], cost:70, hp:170, dmg:15, cd:1.45, range:0,  speed:15, r:15 },
+};
+const ORDER = ['inf','rng','hvy'];
+const LANE = { len: 600, youX: 28, foeX: 572, baseHalf: 16, baseHp: 600 };
+const ICON = {
+  inf: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="currentColor"/></svg>',
+  rng: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14.5 14h-13z" fill="currentColor"/></svg>',
+  hvy: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="currentColor"/></svg>',
+};
+
+let G = null, screen = 'setup';
+function newGame() {
+  G = { t: 0, running: true, over: false, mana: 60, manaMax: 200, hp: [LANE.baseHp, LANE.baseHp],
+        units: [], proj: [], fx: [], motif: [], motifT: 0, foeMana: 20, nextPick: 'inf', spawnQueue: [], wave: 1,
+        drone: null, id: 1, stats: { summoned: 0, manaEarned: 0, accSum: 0, accT: 0, refs: 0 } };
+}
+const accuracy = cAbs => cAbs <= 10 ? 1 : clamp(1 - (cAbs - 10) / 50 * 0.7, 0.3, 1);
+
+function spawn(side, type) {
+  const d = U[type];
+  G.units.push({ id: G.id++, side, type, x: side === 0 ? LANE.youX + LANE.baseHalf + 4 : LANE.foeX - LANE.baseHalf - 4,
+                 hp: d.hp, max: d.hp, cd: 0.4, bob: Math.random() * 6.28, seed: Math.random() * 1000 });
+}
+// Scripted enemy: earns its own budget at a slowly rising rate and buys units as it can afford them
+const FOE_RATE = t => 2.6 + t / 120;
+function pickEnemy() { const r = Math.random(); if (G.t > 80 && r < 0.2) return 'hvy'; if (G.t > 30 && r < 0.45) return 'rng'; return 'inf'; }
+function enemyTick(dt) {
+  G.foeMana += FOE_RATE(G.t) * dt;
+  if (G.t > 5 && G.foeMana >= U[G.nextPick].cost) { G.foeMana -= U[G.nextPick].cost; spawn(1, G.nextPick); G.nextPick = pickEnemy(); }
+  const w = 1 + Math.floor(G.t / 50);
+  if (w > G.wave) {
+    G.wave = w; const n = Math.min(w, 4);
+    for (let i = 0; i < n; i++) G.spawnQueue.push({ at: G.t + i * 1.4, type: (i === 0 && w >= 3) ? 'hvy' : (i % 2 ? 'rng' : 'inf') });
+    toast('Wave ' + w);
+  }
+  while (G.spawnQueue.length && G.spawnQueue[0].at <= G.t) spawn(1, G.spawnQueue.shift().type);
+}
+function damage(u, dmg) {
+  u.hp -= dmg; sfx.hit(); splat(u.x, -U[u.type].r, u.side ? COL.indigo : COL.seal, 3);
+  if (u.hp <= 0) splat(u.x, -U[u.type].r, COL.ink, 10);
+}
+function damageBase(side, dmg) {
+  G.hp[side] = Math.max(0, G.hp[side] - dmg); sfx.base();
+  splat(side === 0 ? LANE.youX + LANE.baseHalf : LANE.foeX - LANE.baseHalf, -30, side ? COL.indigo : COL.seal, 4);
+  if (G.hp[side] <= 0) endGame(side === 1);
+}
+function splat(x, y, color, n) {
+  for (let i = 0; i < n; i++) G.fx.push({ x, y, vx: (Math.random() - 0.5) * 60, vy: -Math.random() * 60 - 10, life: 0.5 + Math.random() * 0.4, age: 0, r: 1 + Math.random() * 2.2, color });
+}
+function update(dt) {
+  G.t += dt;
+  const c = IN.cur;
+  if (c && !c.drone && now() - c.start >= DRONE_MS) { c.drone = true; onDroneStart(c); }
+  if (c && c.drone) {
+    const info = noteInfo(c.midi);
+    if (info.oct >= 0 && info.deg >= 0) {
+      const acc = accuracy(c.cAbs), rate = (info.deg === 0 ? 10 : 4) * acc;
+      const add = Math.min(rate * dt, G.manaMax - G.mana);
+      G.mana += add; G.stats.manaEarned += add; G.stats.accSum += acc * dt; G.stats.accT += dt;
+      G.drone = { deg: info.deg, rate, acc, ok: true };
+    } else G.drone = { ok: false, below: info.oct < 0 };
+  } else G.drone = null;
+  if (G.motif.length && now() - G.motifT > GAP_MS) G.motif = [];
+  enemyTick(dt);
+
+  for (const u of G.units) {
+    if (u.hp <= 0) continue;
+    const d = U[u.type], dir = u.side === 0 ? 1 : -1;
+    u.cd -= dt;
+    let target = null, tdist = Infinity, block = false;
+    for (const e of G.units) {
+      if (e === u || e.hp <= 0) continue;
+      const dist = (e.x - u.x) * dir;
+      if (e.side !== u.side) { if (dist > -8 && dist < tdist) { tdist = dist; target = e; } }
+      else if (dist > 0 && dist < d.r + U[e.type].r + 3) block = true;
+    }
+    const baseFront = u.side === 0 ? LANE.foeX - LANE.baseHalf : LANE.youX + LANE.baseHalf;
+    const baseDist = (baseFront - u.x) * dir;
+    const reachT = target && (d.proj ? tdist <= d.range : tdist <= d.r + U[target.type].r + 3);
+    const reachB = d.proj ? baseDist <= d.range : baseDist <= d.r + 3;
+    if (reachT || reachB) {
+      if (u.cd <= 0) {
+        u.cd = d.cd;
+        if (d.proj) G.proj.push({ side: u.side, x: u.x, x0: u.x, tid: reachT ? target.id : null, toX: reachT ? target.x : baseFront, dmg: d.dmg });
+        else if (reachT) damage(target, d.dmg); else damageBase(1 - u.side, d.dmg);
+        u.lunge = 0.15;
+      }
+    } else if (!block && !(target && tdist <= d.r + U[target.type].r + 3)) {
+      u.x += dir * d.speed * dt; u.bob += dt * 9;
+    }
+    if (u.lunge) u.lunge = Math.max(0, u.lunge - dt);
+  }
+  for (const p of G.proj) {
+    const tgt = p.tid ? G.units.find(x => x.id === p.tid && x.hp > 0) : null;
+    if (p.tid && !tgt) { p.done = true; continue; }
+    const tx = tgt ? tgt.x : p.toX, dx = tx - p.x, step = 260 * dt;
+    if (Math.abs(dx) <= step) { p.done = true; if (tgt) damage(tgt, p.dmg); else damageBase(1 - p.side, p.dmg); }
+    else p.x += Math.sign(dx) * step;
+    p.toX = tx;
+  }
+  G.proj = G.proj.filter(p => !p.done);
+  G.units = G.units.filter(u => u.hp > 0);
+  for (const f of G.fx) { f.age += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 160 * dt; }
+  G.fx = G.fx.filter(f => f.age < f.life);
+}
+
+/* motifs */
+function prefixOk(m, buf) {
+  if (buf.length > m.length) return false;
+  for (let i = 0; i < buf.length; i++) if (buf[i].oct !== 0 || buf[i].deg !== m[i]) return false;
+  return true;
+}
+function motifNote(n, t) {
+  const info = noteInfo(n.midi);
+  if (G.motif.length && t - G.motifT > GAP_MS) G.motif = [];
+  if (info.oct < 0) { if (G.motif.length) toast('Below your home 1'); G.motif = []; return; }
+  if (info.deg < 0) { if (G.motif.length) toast(pretty(info.name) + ' (' + info.phon + ') is out of key'); G.motif = []; return; }
+  const isHome = info.deg === 0 && info.oct === 0;
+  if (!G.motif.length && !isHome) return;   // motifs start on home 1; other notes are free to drone
+  G.motif.push({ deg: info.deg, oct: info.oct, n }); G.motifT = t;
+  const cands = ORDER.filter(k => prefixOk(U[k].motif, G.motif));
+  if (!cands.length) {
+    if (isHome) G.motif = [G.motif[G.motif.length - 1]];
+    else { G.motif = []; toast('No motif goes that way'); }
+    return;
+  }
+  const full = cands.find(k => U[k].motif.length === G.motif.length);
+  if (full) { trySummon(full); G.motif = []; }
+}
+function onDroneStart(n) {
+  if (G && G.motif.length && G.motif[G.motif.length - 1].n === n) G.motif = [];
+}
+function trySummon(k) {
+  const d = U[k];
+  if (G.mana < d.cost) { toast(d.name + ' needs ' + d.cost + ' mana. Drone 1 to earn more.'); sfx.fail(); pulseCard(k, 'fail'); return; }
+  G.mana -= d.cost; spawn(0, k); G.stats.summoned++; sfx.summon(); pulseCard(k, 'ok'); toast(d.name + ' summoned');
+}
+onNoteOn.push((n, t) => { if (screen === 'battle' && G && G.running && !G.over) motifNote(n, t); });
+
+function endGame(won) {
+  G.over = true; G.running = false;
+  const acc = G.stats.accT > 0 ? Math.round(G.stats.accSum / G.stats.accT * 100) + '%' : '—';
+  const mm = Math.floor(G.t / 60), ss = String(Math.floor(G.t % 60)).padStart(2, '0');
+  $('#endEyebrow').textContent = 'Floor 1 · C Ionian';
+  $('#endTitle').textContent = won ? 'The enemy gate falls' : 'Your gate fell';
+  $('#endStats').innerHTML = [
+    ['Time', mm + ':' + ss], ['Units summoned', G.stats.summoned], ['Mana from drones', Math.round(G.stats.manaEarned)],
+    ['Drone tuning', acc], ['Reference presses', G.stats.refs], ['Waves reached', G.wave]
+  ].map(([a, b]) => '<dt>' + a + '</dt><dd>' + b + '</dd>').join('');
+  setTimeout(() => { $('#endOv').hidden = false; $('#againBtn').focus(); }, 500);
+}
+
+/* ================= Drawing: lane ================= */
+const lane = { cv: $('#lane'), ctx: null, bg: null, w: 0, h: 0 };
+lane.ctx = lane.cv.getContext('2d');
+function sizeCanvas(cv) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; return true; }
+  return false;
+}
+function rng(seed) { let s = seed % 2147483647; if (s <= 0) s += 2147483646; return () => (s = s * 16807 % 2147483647) / 2147483647; }
+function makeBg(W, H) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), R = rng(11);
+  x.fillStyle = COL.paper; x.fillRect(0, 0, W, H);
+  x.globalAlpha = 0.1; x.fillStyle = COL.seal; x.beginPath(); x.arc(W * 0.7, H * 0.3, H * 0.15, 0, Math.PI * 2); x.fill();
+  [[0.50, 0.06, 0.18], [0.60, 0.09, 0.13], [0.70, 0.13, 0.07]].forEach(([y, a, amp]) => {
+    x.globalAlpha = a; x.fillStyle = COL.ink; x.beginPath(); x.moveTo(0, H);
+    const n = 9, pts = []; for (let i = 0; i <= n; i++) pts.push([W * i / n, H * (y - R() * amp)]);
+    x.lineTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i <= n; i++) { const [px, py] = pts[i - 1], [qx, qy] = pts[i]; x.quadraticCurveTo(px + (qx - px) * 0.5, Math.min(py, qy) - H * 0.05 * R(), qx, qy); }
+    x.lineTo(W, H); x.closePath(); x.fill();
+  });
+  x.globalAlpha = 0.05; x.fillStyle = COL.ink;
+  for (let i = 0; i < W * H / 900; i++) x.fillRect(R() * W, R() * H, 1, 1);
+  const gy = H * 0.82;
+  x.globalAlpha = 0.9; x.strokeStyle = COL.ink; x.lineCap = 'round';
+  for (let k = 0; k < 3; k++) { x.lineWidth = (k + 1) * 1.2; x.beginPath(); x.moveTo(-5, gy + k * 1.5); for (let px = 0; px <= W + 10; px += 30) x.lineTo(px, gy + k * 1.5 + (R() - 0.5) * 2); x.stroke(); x.globalAlpha = 0.35; }
+  x.globalAlpha = 1;
+  return c;
+}
+function drawGate(x, gy, scale, color, hpFrac, flip) {
+  const ctx = lane.ctx, h = 70 * scale, w = 30 * scale;
+  ctx.save(); ctx.translate(x, gy);
+  ctx.fillStyle = color; ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.5 * scale;
+  // posts
+  ctx.fillRect(-w * 0.5, -h, w * 0.16, h); ctx.fillRect(w * 0.34, -h, w * 0.16, h);
+  // beams
+  ctx.beginPath(); ctx.moveTo(-w * 0.85, -h - 2 * scale); ctx.quadraticCurveTo(0, -h + 4 * scale, w * 0.85, -h - 2 * scale);
+  ctx.lineTo(w * 0.8, -h + 5 * scale); ctx.quadraticCurveTo(0, -h + 10 * scale, -w * 0.8, -h + 5 * scale); ctx.closePath(); ctx.fill();
+  ctx.fillRect(-w * 0.62, -h * 0.78, w * 1.24, 4 * scale);
+  // damage: ink cracks fade the gate
+  ctx.globalAlpha = (1 - hpFrac) * 0.6; ctx.fillStyle = COL.paper; ctx.fillRect(-w, -h - 4 * scale, w * 2, h + 4 * scale);
+  ctx.restore();
+}
+function blobPath(ctx, r, seed, pts) {
+  const R = rng(Math.floor(seed) + 3); ctx.beginPath();
+  for (let i = 0; i <= pts; i++) {
+    const a = (i / pts) * Math.PI * 2, rr = r * (0.88 + R() * 0.22);
+    const px = Math.cos(a) * rr, py = Math.sin(a) * rr; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+  }
+  ctx.closePath();
+}
+function drawUnit(u, X, gy, k) {
+  const ctx = lane.ctx, d = U[u.type], r = (d.r / 11) * clamp(11 * k * 1.1, 9 * dpr(), 22 * dpr());
+  const dir = u.side === 0 ? 1 : -1, color = u.side === 0 ? COL.seal : COL.indigo;
+  const bob = reduceMotion ? 0 : Math.abs(Math.sin(u.bob)) * r * 0.18;
+  const lunge = u.lunge ? dir * r * 0.35 : 0;
+  ctx.save(); ctx.translate(X + lunge, gy - r - bob);
+  ctx.fillStyle = color; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(1.2, r * 0.13); ctx.lineJoin = 'round';
+  if (u.type === 'inf') { blobPath(ctx, r, u.seed, 10); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(dir * r * 0.2, -r * 0.2); ctx.lineTo(dir * r * 1.6, -r * 0.9); ctx.stroke(); }
+  else if (u.type === 'rng') { ctx.beginPath(); ctx.moveTo(0, -r * 1.25); ctx.lineTo(r, r); ctx.lineTo(-r, r); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(dir * r * 0.6, -r * 0.1, r * 0.9, -Math.PI / 2.4, Math.PI / 2.4, dir < 0); ctx.stroke(); }
+  else { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-r, -r * 0.95, r * 2, r * 1.95, r * 0.35); else ctx.rect(-r, -r * 0.95, r * 2, r * 1.95); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = COL.ink; ctx.fillRect(dir > 0 ? r * 0.55 : -r * 0.95, -r * 0.7, r * 0.4, r * 1.3); }
+  if (u.hp < u.max) {
+    const bw = r * 2; ctx.fillStyle = COL['paper-deep']; ctx.fillRect(-bw / 2, -r * 1.75, bw, 3 * dpr());
+    ctx.fillStyle = color; ctx.fillRect(-bw / 2, -r * 1.75, bw * u.hp / u.max, 3 * dpr());
+  }
+  ctx.restore();
+}
+const dpr = () => Math.min(2, window.devicePixelRatio || 1);
+function drawLane() {
+  const cv = lane.cv, ctx = lane.ctx;
+  if (sizeCanvas(cv) || !lane.bg) lane.bg = makeBg(cv.width, cv.height);
+  const W = cv.width, H = cv.height, gy = H * 0.82, padX = 8 * dpr();
+  const k = (W - padX * 2) / LANE.len, X = x => padX + x * k;
+  ctx.drawImage(lane.bg, 0, 0);
+  const gs = clamp(H / (190 * dpr()), 0.55, 1.6) * dpr();
+  drawGate(X(LANE.youX), gy, gs, COL.seal, G.hp[0] / LANE.baseHp);
+  drawGate(X(LANE.foeX), gy, gs, COL.indigo, G.hp[1] / LANE.baseHp);
+  // drone thread rising from your gate
+  if (G.drone && G.drone.ok) {
+    const t = now() / 1000, x0 = X(LANE.youX), amp = 6 * dpr() * G.drone.acc;
+    ctx.save(); ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.85; ctx.lineWidth = 2 * dpr(); ctx.beginPath();
+    for (let i = 0; i <= 40; i++) { const yy = gy - 75 * gs - i * (H * 0.012); const xx = x0 + Math.sin(i * 0.5 - t * 8) * amp; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+    ctx.stroke(); ctx.restore();
+  }
+  const sorted = G.units.slice().sort((a, b) => a.side - b.side);
+  for (const u of sorted) drawUnit(u, X(u.x), gy, k);
+  ctx.fillStyle = COL.ink;
+  for (const p of G.proj) {
+    const span = Math.abs(p.toX - p.x0) || 1, prog = clamp(Math.abs(p.x - p.x0) / span, 0, 1);
+    const yy = gy - 16 * dpr() - Math.sin(prog * Math.PI) * 18 * dpr();
+    ctx.beginPath(); ctx.arc(X(p.x), yy, 2.4 * dpr(), 0, Math.PI * 2); ctx.fill();
+  }
+  for (const f of G.fx) { ctx.globalAlpha = 1 - f.age / f.life; ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(X(f.x), gy + f.y * dpr(), f.r * dpr(), 0, Math.PI * 2); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  // wave + clock
+  const mm = Math.floor(G.t / 60), ss = String(Math.floor(G.t % 60)).padStart(2, '0');
+  ctx.font = `500 ${12 * dpr()}px ${css.getPropertyValue('--font-mono')}`; ctx.fillStyle = COL['ink-soft']; ctx.textAlign = 'center';
+  ctx.fillText('Wave ' + G.wave + ' · ' + mm + ':' + ss, W / 2, 18 * dpr());
+  if (!G.running && !G.over) {
+    ctx.fillStyle = COL.ink; ctx.font = `800 ${26 * dpr()}px ${css.getPropertyValue('--font-display')}`;
+    ctx.fillText('Paused', W / 2, H * 0.45);
+  }
+}
+
+/* ================= Drawing: meter ================= */
+function drawMeter(cv) {
+  sizeCanvas(cv);
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, s = dpr();
+  ctx.clearRect(0, 0, W, H);
+  const top = 26 * s, bot = 28 * s, tx = 12 * s, tw = 10 * s;
+  const y = semi => H - bot - (semi / 12) * (H - top - bot);
+  const c = IN.cur, stable = c ? noteInfo(c.midi) : null;
+  let pos = null, oct = 0;
+  if (IN.disp != null && IN.dispAlpha > 0) {
+    const rel = IN.disp - S.home; oct = Math.floor((Math.round(IN.disp) - S.home) / 12);
+    pos = clamp(rel - oct * 12, -0.5, 12.4);
+  }
+  const ocol = oct < 0 ? COL['ink-faint'] : OCT_COL[Math.min(oct, 2)];
+  // octave label
+  ctx.font = `700 ${10.5 * s}px ${css.getPropertyValue('--font-body')}`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = pos == null ? COL['ink-faint'] : ocol;
+  ctx.fillText(pos == null ? 'OCTAVE' : (oct < 0 ? 'BELOW HOME' : 'OCTAVE ' + (oct + 1)), 0, 12 * s);
+  // fill
+  if (pos != null) { ctx.globalAlpha = 0.28 * IN.dispAlpha; ctx.fillStyle = ocol; ctx.fillRect(tx, y(Math.max(0, pos)), tw, y(0) - y(Math.max(0, pos))); ctx.globalAlpha = 1; }
+  // track
+  ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.5 * s; ctx.strokeRect(tx, y(12), tw, y(0) - y(12));
+  // chromatic dots
+  ctx.fillStyle = COL['ink-faint'];
+  for (let i = 1; i < 12; i++) if (!FLOOR.steps.includes(i)) { ctx.beginPath(); ctx.arc(tx + tw / 2, y(i), 1.6 * s, 0, Math.PI * 2); ctx.fill(); }
+  // degree hashes
+  ctx.textBaseline = 'middle';
+  const marks = FLOOR.steps.map((st, d) => [st, d]).concat([[12, 0]]);
+  for (const [st, d] of marks) {
+    const yy = y(st), on = stable && stable.deg === d && stable.oct >= 0 && (st === 12 ? false : true);
+    ctx.strokeStyle = COL.ink; ctx.lineWidth = (on ? 3 : 1.5) * s;
+    ctx.beginPath(); ctx.moveTo(tx - 4 * s, yy); ctx.lineTo(tx + tw + 6 * s, yy); ctx.stroke();
+    ctx.fillStyle = on ? COL.ink : COL['ink-soft'];
+    ctx.font = `500 ${12.5 * s}px ${css.getPropertyValue('--font-mono')}`; ctx.fillText(String(d + 1), tx + tw + 10 * s, yy);
+    ctx.font = `${on ? 700 : 400} ${11 * s}px ${css.getPropertyValue('--font-body')}`; ctx.fillText(phonetic(spellDegree(d)), tx + tw + 24 * s, yy);
+  }
+  // indicator
+  if (pos != null) {
+    ctx.globalAlpha = IN.dispAlpha; ctx.fillStyle = ocol; ctx.strokeStyle = COL.ink; ctx.lineWidth = 1.5 * s;
+    ctx.beginPath(); ctx.arc(tx + tw / 2, y(pos), 7 * s, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (c && c.drone) { ctx.strokeStyle = COL.gold; ctx.lineWidth = 2.5 * s; ctx.beginPath(); ctx.arc(tx + tw / 2, y(pos), 11 * s, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
+  ctx.textBaseline = 'alphabetic'; ctx.fillStyle = COL['ink-faint']; ctx.font = `400 ${10 * s}px ${css.getPropertyValue('--font-body')}`;
+  ctx.fillText('home 1', 0, H - 2 * s);
+}
+
+/* ================= Readouts ================= */
+function makeReadout(root) {
+  return { phon: $('.phon', root), nm: $('.nm', root), deg: $('.deg', root), tuner: $('.tuner', root), needle: $('.needle', root), cents: $('.cents', root), last: {} };
+}
+const readS = makeReadout($('#readS')), readB = makeReadout($('#readB'));
+function setText(el, v, cache, key) { if (cache[key] !== v) { cache[key] = v; el.textContent = v; } }
+function updateReadout(R) {
+  const c = IN.cur;
+  if (c) {
+    const info = noteInfo(c.midi);
+    setText(R.phon, info.phon, R.last, 'p');
+    setText(R.nm, pretty(info.name) + info.octNum, R.last, 'n');
+    const dl = info.oct < 0 ? 'Below home 1' : info.deg < 0 ? 'Out of key' : 'Degree ' + (info.deg + 1) + ' · octave ' + (info.oct + 1) + (c.drone ? ' · droning' : '');
+    setText(R.deg, dl, R.last, 'd');
+    R.tuner.classList.add('on');
+    const cents = c.pad ? 0 : Math.round(c.cents);
+    R.needle.style.left = (50 + clamp(cents, -50, 50)) + '%';
+    setText(R.cents, (cents > 0 ? '+' : cents < 0 ? '−' : '±') + Math.abs(cents) + '¢', R.last, 'c');
+    R.cents.className = 'cents kv ' + (Math.abs(cents) <= 10 ? 'in' : Math.abs(cents) > 25 ? 'off' : '');
+  } else {
+    setText(R.phon, '—', R.last, 'p'); setText(R.nm, '', R.last, 'n');
+    setText(R.deg, S.mic ? 'Listening…' : (screen === 'battle' ? 'Mic off · use the tap pad' : 'Start the microphone to see your pitch.'), R.last, 'd');
+    R.tuner.classList.remove('on');
+  }
+}
+
+/* ================= Battle UI ================= */
+function chipHTML(d, cls) { return '<span class="chip ' + (cls || '') + '"><b>' + (d + 1) + '</b><small>' + phonetic(spellDegree(d)) + '</small></span>'; }
+function buildCards() {
+  $('#cards').innerHTML = ORDER.map(k => {
+    const u = U[k];
+    return '<div class="card" data-u="' + k + '" style="color:inherit"><span style="color:' + COL.seal + '">' + ICON[k] + '</span><span class="uname">' + u.name +
+      '</span><span class="chips">' + u.motif.map(d => chipHTML(d)).join('') + '</span><span class="cost kv">' + u.cost + '</span></div>';
+  }).join('');
+}
+function buildPad() {
+  const semis = FLOOR.steps.concat([12]);
+  $('#pad').innerHTML = semis.map((st, i) => {
+    const d = i % 7;
+    return '<button class="key' + (d === 0 ? ' tonic' : '') + '" data-semi="' + st + '" aria-label="Degree ' + (d + 1) + '"><b>' + (d + 1) + (i === 7 ? '′' : '') + '</b><small>' + phonetic(spellDegree(d)) + '</small></button>';
+  }).join('');
+}
+function pulseCard(k, cls) {
+  const el = document.querySelector('.card[data-u="' + k + '"]'); if (!el) return;
+  el.classList.remove('ok', 'fail'); void el.offsetWidth; el.classList.add(cls);
+}
+let toastTimer = null;
+function toast(msg) {
+  const el = $('#toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 1800);
+}
+const ui = { last: {} };
+function updateBattleUI() {
+  $('#hpYou').style.transform = 'scaleX(' + (G.hp[0] / LANE.baseHp) + ')';
+  $('#hpFoe').style.transform = 'scaleX(' + (G.hp[1] / LANE.baseHp) + ')';
+  setText($('#manaNum'), String(Math.floor(G.mana)), ui.last, 'mana');
+  $('#manaBar').style.transform = 'scaleX(' + (G.mana / G.manaMax) + ')';
+  // heard
+  const hk = G.motif.map(m => m.deg).join(',');
+  if (ui.last.heard !== hk) {
+    ui.last.heard = hk;
+    const longest = 3;
+    $('#heard').innerHTML = G.motif.length ? G.motif.map(m => chipHTML(m.deg, 'hit')).join('') + Array(longest - G.motif.length).fill('<span class="chip ghost"><b>·</b><small>&nbsp;</small></span>').join('')
+      : '<span class="chip ghost"><b>1</b><small>start</small></span>';
+    for (const k of ORDER) {
+      const card = document.querySelector('.card[data-u="' + k + '"]'), chips = card.querySelectorAll('.chip');
+      const ok = G.motif.length && prefixOk(U[k].motif, G.motif);
+      chips.forEach((ch, i) => ch.classList.toggle('hit', !!ok && i < G.motif.length));
+    }
+  }
+  for (const k of ORDER) document.querySelector('.card[data-u="' + k + '"]').classList.toggle('afford', G.mana >= U[k].cost);
+  // drone line
+  let dl, cls = '';
+  if (G.drone && G.drone.ok) { dl = 'Droning ' + (G.drone.deg + 1) + ' · +' + G.drone.rate.toFixed(1) + ' mana/s · ' + Math.round(G.drone.acc * 100) + '% in tune'; cls = 'on'; }
+  else if (G.drone) { dl = G.drone.below ? 'Below home 1 · no mana' : 'Out of key · no mana'; cls = 'warn'; }
+  else dl = 'Hold a note to drone. Droning 1 earns the most mana.';
+  setText($('#droneLine'), dl, ui.last, 'drone');
+  const el = $('#droneLine'); if (ui.last.dcls !== cls) { ui.last.dcls = cls; el.className = 'drone-line ' + cls; }
+}
+
+/* ================= Setup UI ================= */
+const sel = $('#presetSel');
+sel.innerHTML = PRESETS.map(p => '<option value="' + p.id + '">' + p.label + '</option>').join('');
+applyPreset(S.preset, S.low != null);
+sel.value = S.preset;
+function refreshLabels() {
+  const lowI = noteInfo(S.low), homeI = noteInfo(S.home);
+  const lowName = pretty(lowI.name) + lowI.octNum;
+  $('#lowStatus').innerHTML = 'Lowest note <b class="kv">' + lowName + '</b> · home 1 is <b class="kv">' + pretty(homeI.name) + homeI.octNum + '</b> (' + homeI.phon + ')';
+  $('#transNote').textContent = S.trans === 'C' ? '' : 'Names are written for a ' + TRANS[S.trans].label + ' instrument. The game still hears concert pitch.';
+  $('#refBtn').textContent = 'Reference · ' + phonetic(spellDegree(0));
+  $('#refSetupBtn').textContent = 'Play reference · ' + phonetic(spellDegree(0));
+  const n = d => '<b>' + U[d].motif.map(x => x + 1).join('-') + '</b>';
+  $('#howto').innerHTML = [
+    '<b>Drone</b> by holding any note for about two thirds of a second. Droning 1 earns 10 mana a second and other degrees earn 4. Staying in tune keeps the full rate.',
+    '<b>Summon</b> with three short notes that start on your home 1 (' + homeI.phon + '): ' + n('inf') + ' Infantry (30), ' + n('rng') + ' Ranged (45), ' + n('hvy') + ' Heavy (70). Leave less than about 1.4 seconds between notes.',
+    '<b>Reference</b> plays home 1 whenever you press it.',
+    '<b>Win</b> by breaking the enemy gate before they break yours. A wave arrives every 50 seconds.',
+  ].map(s => '<li>' + s + '</li>').join('');
+  buildCards(); buildPad(); ui.last = {};
+}
+refreshLabels();
+if (S.bleedRms != null) $('#bleedStatus').textContent = S.bleedRms > 0 ? 'Last check: the mic heard the speaker. The game ignores its own reference while it plays.' : 'Last check: the mic barely heard the speaker.';
+
+sel.addEventListener('change', () => { resumable = false; $('#enterBtn').textContent = 'Enter battle'; applyPreset(sel.value, false); store.set('preset', S.preset); store.set('low', S.low); refreshLabels(); });
+
+$('#micBtn').addEventListener('click', async () => {
+  const st = $('#micStatus'); st.className = 'status'; st.textContent = 'Asking for the microphone…';
+  try {
+    ensureAudio();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw Object.assign(new Error('nomedia'), { name: 'NoMedia' });
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    detector = new Detector(AC, stream); S.mic = true;
+    st.className = 'status good'; st.textContent = 'Microphone on. Sing or play a note.';
+    $('#micBtn').disabled = true; $('#micBtn').textContent = 'Microphone on';
+    $('#lowBtn').disabled = false; $('#bleedBtn').disabled = false;
+  } catch (e) {
+    st.className = 'status bad';
+    if (e.name === 'NotAllowedError' || e.name === 'SecurityError') st.textContent = 'The microphone was blocked. Allow it in your browser\'s site settings, then reload the page.';
+    else if (e.name === 'NoMedia') st.textContent = 'This view can\'t reach a microphone. Open the file directly in Chrome, Edge, Firefox or Safari.';
+    else if (e.name === 'NotFoundError') st.textContent = 'No microphone was found. Plug one in and try again.';
+    else st.textContent = 'The microphone didn\'t start (' + (e.message || e.name) + ').';
+  }
+});
+$('#lowBtn').addEventListener('click', () => {
+  DETECT_LOW.active = true; $('#lowBtn').disabled = true;
+  $('#lowStatus').textContent = 'Hold your lowest comfortable note for about one second…';
+  clearTimeout(DETECT_LOW.timer);
+  DETECT_LOW.timer = setTimeout(() => { if (DETECT_LOW.active) { DETECT_LOW.active = false; $('#lowBtn').disabled = false; $('#lowStatus').textContent = 'No steady note came through. Try again a little louder or closer to the mic.'; } }, 12000);
+});
+function detectLowTick(t) {
+  const c = IN.cur;
+  if (c && !c.pad && t - c.start >= 900) {
+    DETECT_LOW.active = false; clearTimeout(DETECT_LOW.timer);
+    S.low = c.midi; recomputeHome(); store.set('low', S.low); refreshLabels(); $('#lowBtn').disabled = false;
+  }
+}
+$('#bleedBtn').addEventListener('click', () => {
+  const st = $('#bleedStatus'); st.className = 'status'; st.textContent = 'Playing the reference and listening… stay quiet for a moment.';
+  $('#bleedBtn').disabled = true;
+  Object.assign(BLEED, { active: true, frames: 0, hits: 0, rmsSum: 0, start: now(), end: now() + 1350 });
+  playRef();
+  setTimeout(() => {
+    BLEED.active = false; $('#bleedBtn').disabled = false;
+    const frac = BLEED.frames ? BLEED.hits / BLEED.frames : 0;
+    if (frac < 0.15) { S.bleedRms = 0; st.className = 'status good'; st.textContent = 'The mic barely heard the speaker. Speaker play should work.'; }
+    else { S.bleedRms = BLEED.rmsSum / BLEED.hits; st.className = 'status'; st.textContent = 'The mic heard the speaker on ' + Math.round(frac * 100) + '% of frames. The game will ignore its own reference while it plays. Headphones give the cleanest result.'; }
+    store.set('bleedRms', S.bleedRms);
+  }, 1700);
+});
+$('#refSetupBtn').addEventListener('click', playRef);
+
+/* ================= Screen flow ================= */
+function showScreen(name) {
+  screen = name;
+  $('#setup').hidden = name !== 'setup'; $('#battle').hidden = name !== 'battle';
+}
+function enterBattle() {
+  resumable = false; $('#enterBtn').textContent = 'Enter battle';
+  ensureAudio(); newGame(); ui.last = {}; lane.bg = null;
+  $('#endOv').hidden = true; $('#pauseBtn').textContent = 'Pause';
+  showScreen('battle');
+  $('#pad').hidden = S.mic && !store.get('padOpen', false);
+  $('#padToggle').textContent = $('#pad').hidden ? 'Tap pad' : 'Hide pad';
+  toast(S.mic ? 'Drone 1 to earn mana, then sing 1-3-5' : 'Hold key 1 to drone, then tap 1-3-5');
+}
+let resumable = false;
+$('#enterBtn').addEventListener('click', () => {
+  if (resumable && G && !G.over) { resumable = false; showScreen('battle'); $('#enterBtn').textContent = 'Enter battle'; return; }
+  enterBattle();
+});
+$('#againBtn').addEventListener('click', enterBattle);
+$('#toSetupBtn').addEventListener('click', () => { $('#endOv').hidden = true; showScreen('setup'); });
+$('#setupBtn').addEventListener('click', () => {
+  if (G && !G.over) { G.running = false; $('#pauseBtn').textContent = 'Resume'; resumable = true; $('#enterBtn').textContent = 'Back to battle (paused)'; }
+  showScreen('setup');
+});
+$('#pauseBtn').addEventListener('click', () => { if (!G || G.over) return; G.running = !G.running; $('#pauseBtn').textContent = G.running ? 'Pause' : 'Resume'; });
+$('#refBtn').addEventListener('click', () => { playRef(); if (G) G.stats.refs++; });
+$('#padToggle').addEventListener('click', () => { const p = $('#pad'); p.hidden = !p.hidden; store.set('padOpen', !p.hidden); $('#padToggle').textContent = p.hidden ? 'Tap pad' : 'Hide pad'; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.running && !G.over) { G.running = false; $('#pauseBtn').textContent = 'Resume'; } });
+
+// Tap pad
+const padEl = $('#pad');
+padEl.addEventListener('pointerdown', e => {
+  const k = e.target.closest('.key'); if (!k) return; e.preventDefault();
+  try { k.setPointerCapture(e.pointerId); } catch (_) {}
+  k.classList.add('down'); padDown(+k.dataset.semi);
+});
+const padRelease = e => { const k = e.target.closest('.key'); if (!k || !k.classList.contains('down')) return; k.classList.remove('down'); padUp(+k.dataset.semi); };
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => padEl.addEventListener(ev, padRelease));
+padEl.addEventListener('contextmenu', e => e.preventDefault());
+
+// Keyboard: 1–7 degrees, 8 = 1 an octave up, R = reference
+const KEY_SEMI = { '1':0, '2':2, '3':4, '4':5, '5':7, '6':9, '7':11, '8':12 };
+document.addEventListener('keydown', e => {
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.key in KEY_SEMI) { e.preventDefault(); padDown(KEY_SEMI[e.key]); const b = padEl.querySelector('[data-semi="' + KEY_SEMI[e.key] + '"]'); if (b) b.classList.add('down'); }
+  else if ((e.key === 'r' || e.key === 'R') && screen === 'battle') { playRef(); if (G) G.stats.refs++; }
+});
+document.addEventListener('keyup', e => {
+  if (e.key in KEY_SEMI) { padUp(KEY_SEMI[e.key]); const b = padEl.querySelector('[data-semi="' + KEY_SEMI[e.key] + '"]'); if (b) b.classList.remove('down'); }
+});
+
+/* ================= Main loop ================= */
+let lastT = now();
+function frame() {
+  const t = now(); const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
+  if (detector) micFrame(t);
+  if (DETECT_LOW.active) detectLowTick(t);
+  updateDisp();
+  if (screen === 'battle' && G) {
+    if (G.running && !G.over) update(dt);
+    drawLane(); updateBattleUI(); drawMeter($('#meterB')); updateReadout(readB);
+  } else if (screen === 'setup') { drawMeter($('#meterS')); updateReadout(readS); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+window.__tonality = { S, IN, U, get G() { return G; }, padDown, padUp, noteInfo, enterBattle };
+})();
+</script>
+</body>
+</html>
