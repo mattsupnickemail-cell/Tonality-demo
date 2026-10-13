@@ -3,18 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Tonality Demo</title>
+<title>Tonality: Ionian Steps</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&family=Lilita+One&family=Syne:wght@700;800&display=swap">
 <style>
-/* Layout: one-screen battle. Lane on top, instrument console (mode meter, tuner, motif cards) below, tap pad along the bottom.
+/* Layout: one-screen battle. Lane on top, instrument console (mode meter, tuner, phrasebook tabs) below, tap pad along the bottom.
    Three switchable looks, each a complete token set: Ink (Okami), Silhouette (Patapon), Overtone (night, notes as light). */
 :root{
   --paper:#E7E2D6; --paper-deep:#D8D1C1; --ink:#1C1915; --ink-soft:#575148; --ink-faint:#9C9486;
-  --seal:#B5381F;   /* you */
-  --indigo:#2B3B63; /* enemy */
-  --gold:#9A7414;   /* mana */
+  --seal:#B5381F; --indigo:#2B3B63; --gold:#9A7414;
   --oct0:#2E6B5A; --oct1:#B0631C; --oct2:#6B3A7A;
   --sky1:#E7E2D6; --sky2:#DCD5C6; --ground:#1C1915;
   --scrim:rgba(28,25,21,.5);
@@ -56,15 +54,13 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .btn.primary{background:var(--ink);color:var(--paper)}
 .btn.primary:hover:not(:disabled){background:var(--ink-soft)}
 .btn.seal{border-color:var(--seal);color:var(--seal)}
-.btn.small{padding:.28em .7em;font-size:13px}
+.btn.small{padding:.26em .65em;font-size:13px}
 .btn.big{font-size:17px;padding:.6em 1.4em}
 .btn:disabled{opacity:.38;cursor:default}
 .kv{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 :root[data-style="overtone"] .btn.primary{box-shadow:0 0 18px -4px var(--seal)}
-
-/* style picker */
 .style-pick{display:inline-flex;border:var(--bw) solid var(--ink);border-radius:var(--r);overflow:hidden;max-width:100%}
 .style-pick button{border:0;background:transparent;padding:.42em .95em;font-size:14px;font-weight:700;white-space:nowrap}
 .style-pick button+button{border-left:var(--bw) solid var(--ink)}
@@ -77,7 +73,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--seal);font-weight:700;margin:0}
 .title-row{display:grid;gap:10px}
 .title-row h1{font-family:var(--font-display);font-weight:var(--dw);font-size:clamp(34px,7vw,56px);line-height:1.02;margin:0;text-wrap:balance}
-.title-row p.lede{margin:0;color:var(--ink-soft);max-width:60ch}
+.title-row p.lede{margin:0;color:var(--ink-soft);max-width:62ch}
 .setup-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px 28px}
 @media (max-width:720px){.setup-grid{grid-template-columns:minmax(0,1fr)}}
 .panel{border-top:2px solid var(--ink);padding-top:12px;display:grid;gap:10px;align-content:start;min-width:0}
@@ -90,34 +86,35 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-radius:var(--r);background:var(--paper);color:var(--ink);max-width:100%;width:100%}
 .howto{margin:0;padding-left:1.15em;display:grid;gap:6px;color:var(--ink-soft);font-size:14.5px;max-width:70ch}
 .howto b{color:var(--ink)}
-.start-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;border-top:2px solid var(--ink);padding-top:18px}
+.start-row{display:grid;gap:12px;border-top:2px solid var(--ink);padding-top:18px}
+.floor-pick{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .instrument{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:stretch}
 .meter{display:block;width:100%;height:100%}
 .meter.tall{height:280px}
 .vol-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .vol-row input[type=range]{flex:1 1 160px;max-width:260px;accent-color:var(--seal)}
 .check{display:flex;align-items:center;gap:8px;font-size:14px}
-.check input{accent-color:var(--seal);width:18px;height:18px}
+.check input{accent-color:var(--seal);width:18px;height:18px;flex:none}
 
-/* readout (shared) */
-.readout{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:4px;align-content:start;min-width:0}
+/* readout */
+.readout{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:3px;align-content:start;min-width:0}
 .phon{font-family:var(--font-display);font-weight:var(--dw);font-size:44px;line-height:1;grid-row:span 2;min-width:2.2em}
 .nm{font-size:13px;color:var(--ink-soft);align-self:end}
 .deg{font-size:13px;color:var(--ink-soft);align-self:start}
 .tuner{grid-column:1/-1;display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(5px);transition:opacity .12s,transform .12s}
 .tuner.on{opacity:1;transform:none}
-.scale{position:relative;flex:1 1 auto;max-width:190px;height:16px}
+.scale{position:relative;flex:1 1 auto;max-width:190px;height:14px}
 .scale::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--ink)}
 .scale i.t{position:absolute;bottom:0;width:1px;height:6px;background:var(--ink-faint)}
-.scale i.mid{position:absolute;left:50%;bottom:0;width:1.5px;height:12px;margin-left:-.75px;background:var(--ink)}
-.needle{position:absolute;left:50%;bottom:0;width:3px;height:16px;margin-left:-1.5px;background:var(--seal);border-radius:1px}
+.scale i.mid{position:absolute;left:50%;bottom:0;width:1.5px;height:11px;margin-left:-.75px;background:var(--ink)}
+.needle{position:absolute;left:50%;bottom:0;width:3px;height:14px;margin-left:-1.5px;background:var(--seal);border-radius:1px}
 .cents{font-size:12.5px;min-width:5ch}
 .cents.in{color:var(--oct0)}
 .cents.off{color:var(--seal)}
 
 /* ---------- battle ---------- */
-#battle{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(110px,1fr) auto auto;
-  grid-template-areas:"hud" "lane" "console" "pad";padding-inline:16px;padding-block:8px 10px;gap:8px}
+#battle{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(150px,1fr) minmax(0,auto) auto;
+  grid-template-areas:"hud" "hud2" "lane" "console" "pad";padding-inline:16px;padding-block:6px 8px;gap:6px}
 .hud{grid-area:hud;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;gap:12px;align-items:center}
 .gate{display:grid;gap:3px;min-width:0}
 .gate .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -125,76 +122,107 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
 .bar{height:9px;border:var(--bw) solid var(--ink);border-radius:calc(var(--r)/3);overflow:hidden;background:var(--paper-deep)}
 .bar i{display:block;height:100%;width:100%;background:var(--seal);transform-origin:left center}
 .gate.foe .bar i{background:var(--indigo);transform-origin:right center}
-.mana{display:grid;justify-items:center;gap:3px;min-width:88px}
-.mana-num{font-family:var(--font-mono);font-size:21px;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
-.mana .bar{width:88px;height:6px;border-width:1px}
+.mana{display:grid;justify-items:center;gap:2px;min-width:84px}
+.mana-num{font-family:var(--font-mono);font-size:20px;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
+.mana .bar{width:84px;height:6px;border-width:1px}
 .mana .bar i{background:var(--gold)}
+.hud2{grid-area:hud2;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;font-size:12px}
+.floor-lbl{color:var(--seal);font-weight:700;white-space:nowrap}
+.xp{display:flex;align-items:center;gap:8px;min-width:0}
+.xp .lbl{white-space:nowrap;color:var(--ink)}
+.xp .bar{flex:1 1 auto;height:6px;border-width:1px;min-width:40px}
+.xp .bar i{background:var(--oct0)}
+.streak{color:var(--ink-soft);white-space:nowrap}
+.streak.hot{color:var(--gold);font-weight:700}
 .lane-wrap{grid-area:lane;position:relative;min-height:0;border:var(--bw) solid var(--ink);border-radius:calc(var(--r)/2);overflow:hidden;background:var(--paper)}
 :root[data-style="overtone"] .lane-wrap{border-color:var(--ink-faint)}
 #lane{position:absolute;inset:0;width:100%;height:100%;display:block}
 .toast{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:13.5px;background:var(--ink);color:var(--paper);padding:.28em .8em;border-radius:calc(var(--r)/2);
   opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis}
 .toast.on{opacity:1}
-.console{grid-area:console;display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;min-height:0}
-.meter-wrap{position:relative;min-height:244px}
+.banner{position:absolute;left:50%;top:26px;transform:translate(-50%,-6px) scale(.96);text-align:center;background:var(--paper);border:var(--bw) solid var(--ink);border-radius:var(--r);
+  padding:.55em 1.1em;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;width:max-content;max-width:calc(100% - 24px);display:grid;gap:2px}
+.banner.on{opacity:1;transform:translate(-50%,0) scale(1)}
+.banner b{font-family:var(--font-display);font-weight:var(--dw);font-size:19px;line-height:1.1}
+.banner span{font-size:13px;color:var(--ink-soft)}
+.console{grid-area:console;display:grid;grid-template-columns:86px minmax(0,1fr);gap:12px;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.meter-wrap{position:relative;min-height:230px}
 .meter.abs{position:absolute;inset:0}
-.console-right{display:grid;gap:7px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr);grid-template-areas:"read" "heard" "trail" "drone" "cards" "mini" "btns"}
-.console-right .readout{grid-area:read}.heard-row{grid-area:heard}.trail{grid-area:trail}.drone-line{grid-area:drone}.cards{grid-area:cards}.mini{grid-area:mini}.btns{grid-area:btns}
+.console-right{display:grid;gap:6px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr);grid-template-areas:"read" "heard" "trail" "drone" "tabs" "body" "btns"}
+.console-right .readout{grid-area:read}.heard-row{grid-area:heard}.trail{grid-area:trail}.drone-line{grid-area:drone}.tabs{grid-area:tabs}.tab-body{grid-area:body}.btns{grid-area:btns}
 @media (min-width:900px) and (min-height:541px){
-  .console{grid-template-columns:110px minmax(0,1fr);max-width:1100px;width:100%;justify-self:center}
-  .console-right{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:28px;grid-template-areas:"read cards" "heard cards" "trail cards" "drone mini" ". btns"}
+  .console{grid-template-columns:110px minmax(0,1fr);max-width:1150px;width:100%;justify-self:center}
+  .console-right{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);column-gap:28px;grid-template-areas:"read tabs" "heard body" "trail body" "drone body" "btns body"}
 }
-.console .phon{font-size:36px}
-.heard-row{display:flex;align-items:center;gap:8px;min-height:30px;flex-wrap:wrap}
-.heard{display:flex;gap:4px}
+.console .phon{font-size:32px}
+.heard-row{display:flex;align-items:center;gap:8px;min-height:28px;flex-wrap:wrap}
+.heard{display:flex;gap:3px;flex-wrap:wrap}
 .trail{font-size:12px;color:var(--ink-faint);min-height:1.4em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .trail b{color:var(--ink-soft);font-weight:500}
 .trail .x{color:var(--seal)}
 .drone-line{font-size:13px;color:var(--ink-soft);min-height:1.5em}
 .drone-line.on{color:var(--gold);font-weight:700}
 .drone-line.warn{color:var(--seal)}
-.cards{display:grid;gap:6px}
-.card{font:inherit;color:inherit;text-align:left;background:transparent;width:100%;cursor:pointer;display:grid;grid-template-columns:18px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:5px 10px;border:var(--bw) solid var(--ink-faint);border-radius:var(--r);transition:border-color .15s}
+.tabs{display:flex;border-bottom:var(--bw) solid var(--ink);gap:2px;overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:.3em .7em;font-size:13px;font-weight:700;color:var(--ink-soft);border-radius:var(--r) var(--r) 0 0;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.tabs button .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--seal);margin-left:5px;vertical-align:middle}
+.tab-body{display:grid;gap:5px;align-content:start;min-height:120px;max-height:clamp(132px,27vh,300px);overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.card{font:inherit;color:inherit;text-align:left;background:transparent;width:100%;cursor:pointer;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:8px;
+  padding:4px 8px;border:var(--bw) solid var(--ink-faint);border-radius:var(--r);transition:border-color .15s}
 .card:hover{background:var(--paper-deep)}
 .card.afford{border-color:var(--ink)}
-.card svg{width:16px;height:16px;display:block}
-.card .uname{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .cost{font-size:13px;color:var(--gold)}
+.card.cool{opacity:.55}
+.card svg{width:15px;height:15px;display:block}
+.card .ico{color:var(--seal)}
+.card .nm2{display:grid;min-width:0;line-height:1.2}
+.card .uname{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .cost{font-size:12px;color:var(--gold)}
 .card:not(.afford) .cost{color:var(--ink-faint)}
 .card.ok{animation:okPulse .6s}
 .card.fail{animation:failShake .35s}
 @keyframes okPulse{0%{background:var(--ink);color:var(--paper)}100%{background:transparent}}
 @keyframes failShake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.chips{display:flex;gap:4px}
-.chip{display:grid;justify-items:center;min-width:30px;padding:1px 4px;border-radius:calc(var(--r)*.66);border:1px solid var(--ink-faint);line-height:1.15;background:var(--paper)}
-.chip b{font-family:var(--font-mono);font-size:13px;font-weight:500}
-.chip small{font-size:10px;color:var(--ink-soft)}
+.chips{display:flex;gap:3px}
+.chip{display:grid;justify-items:center;min-width:25px;padding:1px 2px;border-radius:calc(var(--r)*.6);border:1px solid var(--ink-faint);line-height:1.12;background:var(--paper)}
+.chip b{font-family:var(--font-mono);font-size:12.5px;font-weight:500}
+.chip small{font-size:9.5px;color:var(--ink-soft)}
 .chip.hit{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .chip.hit small{color:var(--paper)}
 .chip.play{background:var(--gold);color:var(--paper);border-color:var(--gold)}
 .chip.play small{color:var(--paper)}
 .chip.ghost{border-style:dashed;color:var(--ink-faint)}
-.mini{font-size:12px;color:var(--ink-soft);margin:0}
-.btns{gap:8px}
-.pad{grid-area:pad;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
-.key{display:grid;justify-items:center;align-content:center;height:54px;border:var(--bw) solid var(--ink);border-radius:var(--r);background:var(--paper);
+.tab-note{font-size:13px;color:var(--ink-soft);margin:2px 0}
+.drones{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 10px}
+.drow{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:12.5px;line-height:1.25;padding:3px 4px;border-radius:calc(var(--r)*.6)}
+.drow b{font-family:var(--font-mono);font-weight:500;font-size:13px}
+.drow span{color:var(--ink-soft)}
+.drow em{font-style:normal;font-weight:700;color:var(--ink)}
+.drow.on{background:var(--ink);color:var(--paper)}
+.drow.on span,.drow.on em{color:var(--paper)}
+.btns{gap:6px}
+.pad{grid-area:pad;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px}
+.key{display:grid;justify-items:center;align-content:center;height:52px;border:var(--bw) solid var(--ink);border-radius:var(--r);background:var(--paper);
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;padding:0}
-.key b{font-family:var(--font-mono);font-size:16px;font-weight:500}
-.key small{font-size:10.5px;color:var(--ink-soft)}
+.key b{font-family:var(--font-mono);font-size:15px;font-weight:500}
+.key small{font-size:10px;color:var(--ink-soft)}
 .key.tonic{border-color:var(--seal)}
 .key.down{background:var(--ink);color:var(--paper)}
 .key.down small{color:var(--paper)}
+.key.oct{font-size:12px;font-weight:700}
+.key.oct[aria-pressed="true"]{background:var(--seal);border-color:var(--seal);color:var(--paper)}
 @media (orientation:landscape) and (max-height:540px){
-  #battle{grid-template-columns:minmax(0,1fr) minmax(0,380px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"hud hud" "lane console" "pad console"}
+  #battle{grid-template-columns:minmax(0,1fr) minmax(0,400px);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"hud hud" "hud2 hud2" "lane console" "pad console"}
   .console{overflow-y:auto}
   .meter-wrap{min-height:200px}
 }
 @media (max-width:380px){.mana{min-width:70px}.mana .bar{width:70px}.hud{gap:8px}.style-pick button{padding:.42em .7em}}
 
 /* overlays */
-.overlay{position:fixed;inset:0;background:var(--scrim);display:grid;place-items:center;padding:16px;z-index:10}
-.ov-card{background:var(--paper);border:2px solid var(--ink);border-radius:var(--r);padding:22px;max-width:420px;width:100%;display:grid;gap:12px}
+.overlay{position:fixed;inset:0;background:var(--scrim);display:grid;place-items:center;padding:16px;z-index:10;overflow-y:auto}
+.ov-card{background:var(--paper);border:2px solid var(--ink);border-radius:var(--r);padding:22px;max-width:460px;width:100%;display:grid;gap:12px}
 .ov-card h2{font-family:var(--font-display);font-weight:var(--dw);font-size:32px;line-height:1.1;margin:0}
+.ov-card .home{margin:0;font-size:15px}
 .stats{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;margin:0}
 .stats dt{color:var(--ink-soft)}
 .stats dd{margin:0;font-family:var(--font-mono);text-align:right;font-variant-numeric:tabular-nums}
@@ -207,9 +235,9 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
 <section id="setup" aria-labelledby="setupTitle">
   <div class="setup-inner">
     <header class="title-row">
-      <p class="eyebrow">First demo · Floor 1 · C Ionian</p>
-      <h1 id="setupTitle">Tune the bard</h1>
-      <p class="lede">Check that the game hears you, set your range, then hold the lane with your voice or instrument.</p>
+      <p class="eyebrow">Ionian realm · Dungeon 1</p>
+      <h1 id="setupTitle">The Ionian Steps</h1>
+      <p class="lede">Three floors, three keys: C, then G, then D, one step around the circle of fifths each time. Each floor adds something new. Set up your voice or instrument, then go in.</p>
       <div class="style-pick" role="radiogroup" aria-label="Visual style" id="stylePickS"></div>
       <p class="style-desc" id="styleDesc"></p>
     </header>
@@ -221,7 +249,6 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
         <div class="row"><button id="micBtn" class="btn primary">Start microphone</button></div>
         <p id="micStatus" class="status">Microphone off.</p>
       </section>
-
       <section class="panel">
         <h2><span class="step">02</span>Instrument and range</h2>
         <label class="note" for="presetSel">Instrument or voice. This sets your lowest note and the note names you see.</label>
@@ -230,7 +257,6 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
         <p id="lowStatus" class="status"></p>
         <p class="note" id="transNote"></p>
       </section>
-
       <section class="panel">
         <h2><span class="step">03</span>Pitch check</h2>
         <p class="note">Sing or play anything. The meter is spaced like the mode, so half steps sit closer together. Its color shows which octave above home 1 you're in.</p>
@@ -243,11 +269,11 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
         </div>
         <div class="row"><button id="refSetupBtn" class="btn seal">Play reference</button></div>
       </section>
-
       <section class="panel">
         <h2><span class="step">04</span>Sound</h2>
         <div class="vol-row"><label class="note" for="vol">Game volume</label><input type="range" id="vol" min="0.5" max="4" step="0.1"><span class="kv note" id="volOut"></span></div>
         <label class="check"><input type="checkbox" id="drumsChk"> Battle drums that build with each army</label>
+        <label class="check"><input type="checkbox" id="songsChk"> Units hum their phrases</label>
         <p class="note">Speaker check: plays the reference tone and listens for it, so the game knows how much of its own sound reaches the mic.</p>
         <div class="row"><button id="bleedBtn" class="btn" disabled>Test speaker bleed</button></div>
         <p id="bleedStatus" class="status"></p>
@@ -255,14 +281,14 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
     </div>
 
     <section class="panel">
-      <h2>How floor 1 works</h2>
+      <h2>How it plays</h2>
       <ul class="howto" id="howto"></ul>
-      <div class="row" id="songRow"><span class="lbl">Hear a summon song</span></div>
     </section>
 
     <div class="start-row">
-      <button id="enterBtn" class="btn primary big">Enter battle</button>
-      <p class="note">No mic? You can still play with the tap pad or number keys 1–8.</p>
+      <div class="row"><button id="enterBtn" class="btn primary big">Enter the dungeon</button></div>
+      <div class="floor-pick" id="floorPick" aria-label="Start on a floor"></div>
+      <p class="note">No mic? Play with the tap pad, or keys 1–7 and 8 for 1′. Hold Shift for the octave above.</p>
     </div>
   </div>
 </section>
@@ -271,12 +297,17 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
 <section id="battle" hidden aria-label="Battle">
   <header class="hud">
     <div class="gate you"><span class="lbl">Your gate</span><div class="bar"><i id="hpYou"></i></div></div>
-    <div class="mana" aria-live="off"><span class="mana-num" id="manaNum">60</span><div class="bar"><i id="manaBar"></i></div><span class="lbl">Mana</span></div>
+    <div class="mana"><span class="mana-num" id="manaNum">60</span><div class="bar"><i id="manaBar"></i></div><span class="lbl">Mana</span></div>
     <div class="gate foe"><span class="lbl">Enemy gate</span><div class="bar"><i id="hpFoe"></i></div></div>
     <button id="pauseBtn" class="btn small">Pause</button>
   </header>
+  <div class="hud2">
+    <span class="floor-lbl kv" id="floorLbl"></span>
+    <div class="xp"><span class="lbl" id="tierLbl">Tier 1</span><div class="bar"><i id="xpBar"></i></div></div>
+    <span class="streak kv" id="streakLbl"></span>
+  </div>
 
-  <div class="lane-wrap"><canvas id="lane" aria-label="Battlefield"></canvas><div id="toast" class="toast" role="status"></div></div>
+  <div class="lane-wrap"><canvas id="lane" aria-label="Battlefield"></canvas><div id="banner" class="banner" role="status"><b></b><span></span></div><div id="toast" class="toast" role="status"></div></div>
 
   <div class="console">
     <div class="meter-wrap"><canvas id="meterB" class="meter abs" aria-label="Pitch meter"></canvas></div>
@@ -288,21 +319,31 @@ select{font:inherit;padding:.45em .6em;border:var(--bw) solid var(--ink);border-
       <div class="heard-row"><span class="lbl">Heard</span><span class="heard" id="heard"></span></div>
       <div class="trail kv" id="trail"></div>
       <div class="drone-line" id="droneLine"></div>
-      <div class="cards" id="cards"></div>
-      <p class="mini">Tap a unit to hear its summon song.</p>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="tab-body" id="tabBody"></div>
       <div class="row btns"><button id="refBtn" class="btn seal small">Reference</button><button id="padToggle" class="btn small">Tap pad</button><button id="styleBtn" class="btn small">Style</button><button id="setupBtn" class="btn small">Setup</button></div>
     </div>
   </div>
-
   <div class="pad" id="pad" hidden></div>
 </section>
 
+<div class="overlay" id="floorOv" hidden>
+  <div class="ov-card" role="dialog" aria-labelledby="flTitle">
+    <p class="eyebrow" id="flEyebrow"></p>
+    <h2 id="flTitle"></h2>
+    <p class="home" id="flHome"></p>
+    <ul class="howto" id="flNews"></ul>
+    <div class="row" id="flHear"></div>
+    <div class="row"><button id="flStart" class="btn primary">Start floor</button><button id="flRef" class="btn seal">Play reference</button></div>
+  </div>
+</div>
 <div class="overlay" id="endOv" hidden>
   <div class="ov-card" role="dialog" aria-labelledby="endTitle">
     <p class="eyebrow" id="endEyebrow"></p>
     <h2 id="endTitle"></h2>
+    <p class="note" id="endNote"></p>
     <dl class="stats" id="endStats"></dl>
-    <div class="row"><button id="againBtn" class="btn primary">Play again</button><button id="toSetupBtn" class="btn">Back to setup</button></div>
+    <div class="row" id="endBtns"></div>
   </div>
 </div>
 
@@ -345,17 +386,14 @@ const PHON = { C:'See', D:'Dee', E:'Ee', F:'Ef', G:'Jee', A:'Ay', B:'Bee' };
 const SHARPS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const FLATS  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
 const KEY_LETTER = ['C','D','D','E','E','F','G','G','A','A','B','B'];
+const KEY_NAME = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
 const ACC_SUFFIX = { '#':'sh', 'b':'f', '##':'shsh', 'bb':'ff', '':'' };
 const phonetic = n => PHON[n[0]] + ACC_SUFFIX[n.slice(1)];
 const pretty = n => n[0] + n.slice(1).replace(/#/g, '♯').replace(/b/g, '♭');
 const midiToHz = m => 440 * Math.pow(2, (m - 69) / 12);
 const hzToMidi = f => 69 + 12 * Math.log2(f / 440);
-function parseNote(s) {
-  const m = /^([A-G])([#b]?)(-?\d)$/.exec(s);
-  return (+m[3] + 1) * 12 + LETTER_PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
-}
+function parseNote(s) { const m = /^([A-G])([#b]?)(-?\d)$/.exec(s); return (+m[3] + 1) * 12 + LETTER_PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0); }
 const TRANS = { C: { semis: 0, label: 'concert pitch' }, Bb: { semis: 2, label: 'B♭' }, Eb: { semis: 9, label: 'E♭' } };
-const FLOOR = { tonicPc: 0, steps: [0,2,4,5,7,9,11], label: 'C Ionian' };
 const PRESETS = [
   { id:'voice-bass',     label:'Voice · bass',     low:'E2',  trans:'C' },
   { id:'voice-baritone', label:'Voice · baritone', low:'A2',  trans:'C' },
@@ -375,8 +413,20 @@ const PRESETS = [
 ];
 const S = {
   preset: store.get('preset', 'voice-tenor'), low: store.get('low', null), trans: 'C', home: 48,
-  bleedRms: store.get('bleedRms', null), vol: store.get('vol', 1.8), drums: store.get('drums', true), mic: false,
+  bleedRms: store.get('bleedRms', null), vol: store.get('vol', 1.8), drums: store.get('drums', true), songs: store.get('songs', true), mic: false,
 };
+
+/* ================= The dungeon ================= */
+const FLOOR = { tonicPc: 0, steps: [0,2,4,5,7,9,11], mode: 'Ionian' };
+const FLOORS = [
+  { pc: 0, budget: t => 2.6 + t / 120, xp: 1.0,  turnEvery: 0,  armorChance: 0,   tier2: () => false,                         powers: [],                          boss: false },
+  { pc: 7, budget: t => 2.5 + t / 170, xp: 1.15, turnEvery: 50, armorChance: 0.12, tier2: t => t > 90 && Math.random() < 0.25, powers: ['rally', 'wall'],           boss: false },
+  { pc: 2, budget: t => 2.6 + t / 160, xp: 1.3,  turnEvery: 45, armorChance: 0.2, tier2: t => t > 80 && Math.random() < 0.25,  powers: ['rally', 'wall', 'volley'], boss: true },
+];
+let FI = 0;
+const F = () => FLOORS[FI];
+function setFloor(i) { FI = i; FLOOR.tonicPc = FLOORS[i].pc; recomputeHome(); refreshLabels(); lane.bg = null; }
+
 function writtenTonicPc() { return mod(FLOOR.tonicPc + TRANS[S.trans].semis, 12); }
 function useFlats() { return [1,3,5,6,8,10].includes(writtenTonicPc()); }
 function spellDegree(d) {
@@ -393,6 +443,7 @@ function noteInfo(midi) {
   return { deg, oct, name, phon: phonetic(name), octNum: Math.floor(wMidi / 12) - 1 };
 }
 const label = info => pretty(info.name) + info.octNum + ' (' + info.phon + ')';
+const keyLabel = () => KEY_NAME[FLOOR.tonicPc] + ' Ionian' + (S.trans === 'C' ? '' : ' (your ' + pretty(spellDegree(0)) + ')');
 function applyPreset(id, keepLow) {
   const p = PRESETS.find(x => x.id === id) || PRESETS[2];
   S.preset = p.id; S.trans = p.trans;
@@ -400,10 +451,11 @@ function applyPreset(id, keepLow) {
   recomputeHome();
 }
 function recomputeHome() { let h = S.low; while (mod(h, 12) !== FLOOR.tonicPc) h++; S.home = h; }
+const midiOf = ([deg, oct]) => S.home + FLOOR.steps[deg] + 12 * oct;
+const degTxt = ([deg, oct]) => (deg + 1) + (oct > 0 ? '′'.repeat(oct) : '');
 
 /* ================= Audio engine ================= */
 let AC = null, master = null, noiseBuf = null, detector = null;
-const REF = { until: 0, pc: FLOOR.tonicPc };
 function ensureAudio() {
   if (!AC) {
     AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -416,21 +468,16 @@ function ensureAudio() {
   if (AC.state === 'suspended') AC.resume();
   return AC;
 }
-function out(pan) {
-  if (!pan || !AC.createStereoPanner) return master;
-  const p = AC.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); p.connect(master); return p;
-}
-// pitched hit: sine/triangle with a falling pitch (drums, wood)
+function out(pan) { if (!pan || !AC.createStereoPanner) return master; const p = AC.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); p.connect(master); return p; }
 function tone(t, f0, f1, dur, vol, pan, type) {
   const o = AC.createOscillator(), g = AC.createGain();
   o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   o.connect(g).connect(out(pan)); o.start(t); o.stop(t + dur + 0.02);
 }
-// filtered noise burst, with an optional filter sweep
 function nz(t, dur, vol, type, f0, f1, q, pan) {
   const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
-  s.buffer = noiseBuf; s.loopStart = 0; f.type = type; f.Q.value = q || 1;
+  s.buffer = noiseBuf; f.type = type; f.Q.value = q || 1;
   f.frequency.setValueAtTime(f0, t); if (f1 && f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   s.connect(f).connect(g).connect(out(pan)); s.start(t, Math.random() * 0.4); s.stop(t + dur + 0.02);
@@ -446,11 +493,23 @@ const sfx = {
   death(x)  { if (!AC || !allow('death', 70)) return; const t = AC.currentTime; nz(t, 0.2, 0.32, 'lowpass', 900, 180, 0.8, panOf(x)); },
   base(side){ if (!AC || !allow('base' + side, 140)) return; const t = AC.currentTime, p = side ? 0.7 : -0.7; tone(t, 92, 36, 0.55, 0.95, p); nz(t, 0.28, 0.42, 'bandpass', 700, 300, 0.7, p); },
   summon()  { if (!AC) return; const t = AC.currentTime; nz(t, 0.34, 0.34, 'bandpass', 380, 2800, 1.3, -0.5); tone(t + 0.02, 170, 95, 0.2, 0.42, -0.5); },
+  armor(x)  { if (!AC) return; const t = AC.currentTime; nz(t, 0.12, 0.3, 'bandpass', 4600, 4600, 9, panOf(x)); nz(t + 0.06, 0.12, 0.22, 'bandpass', 3400, 3400, 9, panOf(x)); },
+  crack(x)  { if (!AC || !allow('crack', 80)) return; const t = AC.currentTime; nz(t, 0.09, 0.35, 'highpass', 2600, 2600, 0.8, panOf(x)); nz(t, 0.14, 0.25, 'bandpass', 900, 500, 1.2, panOf(x)); },
+  turn(x)   { if (!AC) return; const t = AC.currentTime; nz(t, 0.42, 0.34, 'bandpass', 2600, 380, 1.5, panOf(x)); tone(t, 300, 110, 0.4, 0.35, panOf(x), 'triangle'); },
+  evolve()  { if (!AC) return; const t = AC.currentTime; [0, 0.16, 0.32].forEach((o, i) => tone(t + o, 120 + i * 20, 55, 0.3, 0.7)); nz(t + 0.3, 0.7, 0.3, 'bandpass', 300, 4000, 1, 0); },
+  rally()   { if (!AC) return; const t = AC.currentTime; for (let i = 0; i < 7; i++) tone(t + i * 0.07, 160, 95, 0.12, 0.35 + i * 0.05, -0.4); },
+  wall()    { if (!AC) return; const t = AC.currentTime; tone(t, 70, 32, 0.6, 0.9, -0.6); nz(t, 0.4, 0.35, 'lowpass', 600, 120, 0.7, -0.6); },
+  volley()  { if (!AC) return; const t = AC.currentTime; for (let i = 0; i < 3; i++) nz(t + i * 0.09, 0.14, 0.26, 'bandpass', 5200, 1300, 2.2, -0.3 + i * 0.3); },
   fail()    { if (!AC) return; const t = AC.currentTime; tone(t, 190, 170, 0.07, 0.3, 0, 'triangle'); tone(t + 0.1, 170, 150, 0.08, 0.3, 0, 'triangle'); },
   win()     { if (!AC) return; const t = AC.currentTime; [0, .28, .5, .68, .82, .93, 1.02].forEach((o, i) => tone(t + o, 140 - i * 4, 55, 0.3, 0.6)); tone(t + 1.2, 110, 40, 0.9, 1.0); nz(t + 1.2, 0.5, 0.35, 'lowpass', 1200, 300, 0.6); },
   lose()    { if (!AC) return; const t = AC.currentTime; [0, .6, 1.2].forEach((o, i) => tone(t + o, 100 - i * 14, 34, 0.7, 0.8)); },
 };
-// The tuning fork: a pure sine with a brief metallic strike partial on top
+// Pitches the game itself is sounding. The mic ignores these unless you're clearly louder than the measured bleed.
+const GN = [];
+function gameNote(midi, fromMs, durMs) { GN.push({ pc: mod(midi, 12), from: fromMs, until: fromMs + durMs + 150 }); }
+function isGameNote(pc, t) { while (GN.length && GN[0].until < t - 2000) GN.shift(); return GN.some(g => g.pc === pc && t >= g.from - 40 && t <= g.until); }
+const bleedThresh = () => S.bleedRms == null ? 0.02 : S.bleedRms * 1.8;
+function refHz() { let m = S.home; while (midiToHz(m) < 190) m += 12; return midiToHz(m); }
 function playRef() {
   ensureAudio();
   const t = AC.currentTime, f = refHz(), o = AC.createOscillator(), g = AC.createGain();
@@ -459,41 +518,43 @@ function playRef() {
   g.gain.setValueAtTime(0.55, t + 0.9); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.5);
   o.connect(g).connect(master); o.start(t); o.stop(t + 1.55);
   tone(t, f * 6.27, f * 6.2, 0.14, 0.12);
-  REF.until = now() + 1550 + 150; REF.pc = FLOOR.tonicPc;
+  gameNote(S.home, now(), 1550);
 }
-function refHz() { let m = S.home; while (midiToHz(m) < 190) m += 12; return midiToHz(m); }
-// The bard's voice: a sawtooth through two vowel formants ("ah"), with vibrato that eases in
-function voice(hz, t, dur, vol) {
-  const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz;
-  const lfo = AC.createOscillator(), lg = AC.createGain(); lfo.frequency.value = 5.3; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(hz * 0.007, t + 0.35);
+// Your bard's voice ("ah") and the enemy's voice ("oo", reedier, panned right)
+function voice(hz, t, dur, vol, enemy) {
+  const o = AC.createOscillator(); o.type = enemy ? 'square' : 'sawtooth'; o.frequency.value = hz;
+  const lfo = AC.createOscillator(), lg = AC.createGain(); lfo.frequency.value = enemy ? 6.4 : 5.3;
+  lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(hz * (enemy ? 0.011 : 0.007), t + 0.3);
   lfo.connect(lg).connect(o.frequency);
-  const f1 = AC.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 760; f1.Q.value = 4.5;
-  const f2 = AC.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1180; f2.Q.value = 5;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(3200, hz * 5);
+  const f1 = AC.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = enemy ? 380 : 760; f1.Q.value = 4.5;
+  const f2 = AC.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = enemy ? 900 : 1180; f2.Q.value = 5;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(3200, hz * (enemy ? 3.5 : 5));
   const b1 = AC.createGain(), b2 = AC.createGain(), b3 = AC.createGain(), g = AC.createGain();
-  b1.gain.value = 1.3; b2.gain.value = 0.8; b3.gain.value = 0.55;
+  b1.gain.value = 1.3; b2.gain.value = enemy ? 0.5 : 0.8; b3.gain.value = enemy ? 0.4 : 0.55;
   o.connect(f1).connect(b1).connect(g); o.connect(f2).connect(b2).connect(g); o.connect(lp).connect(b3).connect(g);
-  g.connect(master);
+  g.connect(out(enemy ? 0.55 : 0));
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.05);
   o.start(t); lfo.start(t);
   const stop = (at) => { const e = at || AC.currentTime; g.gain.cancelScheduledValues(e); g.gain.setValueAtTime(g.gain.value || vol, e); g.gain.linearRampToValueAtTime(0, e + 0.12); o.stop(e + 0.15); lfo.stop(e + 0.15); };
   if (dur) { g.gain.setValueAtTime(vol, t + dur - 0.08); g.gain.linearRampToValueAtTime(0, t + dur); o.stop(t + dur + 0.02); lfo.stop(t + dur + 0.02); }
   return { stop };
 }
-// A unit's summon song: its motif sung at your home-1 pitches. The mic is muted while it plays.
+// Phrase playback. Previews mute the mic (you're listening); in-battle hums only mark their pitches as the game's own.
 let songTimers = [];
-function playSong(k, onStep) {
+function playNotes(notes, opts) {
   ensureAudio();
-  songTimers.forEach(clearTimeout); songTimers = [];
-  const notes = U[k].motif.map(d => S.home + FLOOR.steps[d]);
-  const dur = 0.44, gap = 0.1, t0 = AC.currentTime + 0.05;
-  notes.forEach((m, i) => {
-    voice(midiToHz(m), t0 + i * (dur + gap), dur, 0.42);
-    songTimers.push(setTimeout(() => onStep && onStep(i), (i * (dur + gap) + 0.05) * 1000));
+  const o = Object.assign({ dur: 0.44, gap: 0.1, vol: 0.42, enemy: false, preview: true, onStep: null }, opts);
+  if (o.preview) { songTimers.forEach(clearTimeout); songTimers = []; }
+  const t0 = AC.currentTime + 0.05, step = o.dur + o.gap;
+  notes.forEach((n, i) => {
+    const m = midiOf(n);
+    voice(midiToHz(m), t0 + i * step, o.dur, o.vol, o.enemy);
+    if (!o.preview) gameNote(m, now() + (0.05 + i * step) * 1000, o.dur * 1000);
+    if (o.onStep) songTimers.push(setTimeout(() => o.onStep(i), (i * step + 0.05) * 1000));
   });
-  const total = (notes.length * (dur + gap) + 0.05) * 1000;
-  IN.muteUntil = now() + total + 250;
-  songTimers.push(setTimeout(() => onStep && onStep(-1), total));
+  const total = (notes.length * step + 0.05) * 1000;
+  if (o.preview) IN.muteUntil = now() + total + 250;
+  if (o.onStep) songTimers.push(setTimeout(() => o.onStep(-1), total));
 }
 function padTone(midi) { ensureAudio(); let m = midi; while (midiToHz(m) < 110) m += 12; return voice(midiToHz(m), AC.currentTime, 0, 0.32); }
 
@@ -507,12 +568,10 @@ function percTick() {
 }
 function drumStep(st, t) {
   const mine = G.units.filter(u => u.side === 0).length, foe = G.units.length - mine;
-  // yours: frame drum, shaker, low tom (left)
   if (mine >= 1 && (st === 0 || st === 4)) { tone(t, 150, 92, 0.13, 0.26, -0.45); nz(t, 0.05, 0.08, 'lowpass', 500, 300, 0.7, -0.45); }
   if (mine >= 3 && st % 2 === 1) nz(t, 0.045, 0.06, 'highpass', 7000, 7000, 0.7, -0.45);
   if (mine >= 6 && (st === 6 || st === 7)) tone(t, 115, 70, 0.16, 0.22, -0.45);
-  // enemy: woodblock, claves, deep drum (right)
-  if (foe >= 1 && (st === 2 || st === 6)) { nz(t, 0.04, 0.2, 'bandpass', 1400, 1400, 7, 0.45); }
+  if (foe >= 1 && (st === 2 || st === 6)) nz(t, 0.04, 0.2, 'bandpass', 1400, 1400, 7, 0.45);
   if (foe >= 3 && (st === 3 || st === 7)) nz(t, 0.03, 0.12, 'bandpass', 2600, 2600, 9, 0.45);
   if (foe >= 6 && st === 0) tone(t, 82, 42, 0.32, 0.32, 0.45);
 }
@@ -541,9 +600,7 @@ class Detector {
       run += sum; d[tau] = run > 0 ? sum * tau / run : 1;
     }
     let tau = -1;
-    for (let t = tauMin; t <= tauMax; t++) {
-      if (d[t] < 0.15) { while (t + 1 <= tauMax && d[t + 1] < d[t]) t++; tau = t; break; }
-    }
+    for (let t = tauMin; t <= tauMax; t++) { if (d[t] < 0.15) { while (t + 1 <= tauMax && d[t + 1] < d[t]) t++; tau = t; break; } }
     if (tau < 0) return { rms, f: 0, clarity: 0 };
     let bt = tau;
     if (tau > 1 && tau < tauMax) { const a = d[tau - 1], c = d[tau + 1], den = a + c - 2 * d[tau]; if (den) bt = tau + 0.5 * (a - c) / den; }
@@ -554,38 +611,27 @@ class Detector {
 /* ================= Note tracking ================= */
 const MIN_NOTE_MS = 80, RELEASE_MS = 90, DRONE_MS = 1000, GAP_MS = 1800, MOTIF_MIN_MS = 110, CLARITY = 0.85;
 const IN = { cur: null, cand: null, candSince: 0, lostSince: 0, padUntil: 0, muteUntil: 0, nf: 0.003, last: { midiF: null, rms: 0 }, disp: null, dispAlpha: 0 };
-const onNoteOff = [];
-const emitOff = (n, t) => onNoteOff.forEach(f => f(n, t));
 function feedMic(midiF, t) {
   const n = midiF == null ? null : Math.round(midiF);
   const c = IN.cur;
   if (c && c.pad) return;
-  if (c && n === c.midi) {
-    c.lastSeen = t; c.cents = (midiF - n) * 100; c.cAbs = c.cAbs * 0.85 + Math.abs(c.cents) * 0.15;
-    IN.cand = null; IN.lostSince = 0; return;
-  }
+  if (c && n === c.midi) { c.lastSeen = t; c.cents = (midiF - n) * 100; c.cAbs = c.cAbs * 0.85 + Math.abs(c.cents) * 0.15; IN.cand = null; IN.lostSince = 0; return; }
   if (c && !IN.lostSince) IN.lostSince = t;
   if (n == null) IN.cand = null; else if (n !== IN.cand) { IN.cand = n; IN.candSince = t; }
   if (IN.cand != null && t - IN.candSince >= MIN_NOTE_MS) {
-    if (c) { IN.cur = null; emitOff(c, IN.candSince); }
     const cents = (midiF - IN.cand) * 100;
     IN.cur = { midi: IN.cand, start: IN.candSince, lastSeen: t, cents, cAbs: Math.abs(cents), drone: false, pad: false };
     IN.cand = null; IN.lostSince = 0; return;
   }
-  if (c && ((IN.cand == null && t - IN.lostSince >= RELEASE_MS) || t - IN.lostSince >= RELEASE_MS + MIN_NOTE_MS)) {
-    IN.cur = null; IN.lostSince = 0; emitOff(c, t);
-  }
+  if (c && ((IN.cand == null && t - IN.lostSince >= RELEASE_MS) || t - IN.lostSince >= RELEASE_MS + MIN_NOTE_MS)) { IN.cur = null; IN.lostSince = 0; }
 }
-function padDown(semi) {
-  const t = now(), midi = S.home + semi;
-  if (IN.cur) { const c = IN.cur; IN.cur = null; if (c.snd) c.snd.stop(); emitOff(c, t); }
-  const nn = { midi, start: t, lastSeen: t, cents: 0, cAbs: 0, drone: false, pad: true, semi };
-  nn.snd = padTone(midi); IN.cur = nn; IN.cand = null;
+function padDown(midi) {
+  const t = now();
+  if (IN.cur && IN.cur.snd) IN.cur.snd.stop();
+  IN.cur = { midi, start: t, lastSeen: t, cents: 0, cAbs: 0, drone: false, pad: true };
+  IN.cur.snd = padTone(midi); IN.cand = null;
 }
-function padUp(semi) {
-  const c = IN.cur;
-  if (c && c.pad && (semi == null || c.semi === semi)) { if (c.snd) c.snd.stop(); IN.cur = null; IN.padUntil = now() + 250; emitOff(c, now()); }
-}
+function padUp(midi) { const c = IN.cur; if (c && c.pad && (midi == null || c.midi === midi)) { if (c.snd) c.snd.stop(); IN.cur = null; IN.padUntil = now() + 250; } }
 const DETECT_LOW = { active: false, timer: null };
 const BLEED = { active: false, frames: 0, hits: 0, rmsSum: 0, start: 0, end: 0 };
 function micFrame(t) {
@@ -598,10 +644,10 @@ function micFrame(t) {
   let midiF = (tonal && r.rms > gate) ? hzToMidi(r.f) : null;
   if (BLEED.active && t > BLEED.start + 150 && t < BLEED.end) {
     BLEED.frames++;
-    if (midiF != null && mod(Math.round(midiF), 12) === REF.pc) { BLEED.hits++; BLEED.rmsSum += r.rms; }
+    if (midiF != null && mod(Math.round(midiF), 12) === mod(S.home, 12)) { BLEED.hits++; BLEED.rmsSum += r.rms; }
+    midiF = null;
   }
-  // Known-pitch rejection: ignore our own reference tone unless the mic hears it louder than the measured bleed
-  if (midiF != null && t < REF.until && mod(Math.round(midiF), 12) === REF.pc && (S.bleedRms == null || r.rms < S.bleedRms * 1.8)) midiF = null;
+  if (midiF != null && isGameNote(mod(Math.round(midiF), 12), t) && r.rms < bleedThresh()) midiF = null;
   IN.last.rms = r.rms;
   if ((IN.cur && IN.cur.pad) || t < IN.padUntil) return;
   if (t < IN.muteUntil) { IN.last.midiF = null; feedMic(null, t); return; }
@@ -609,113 +655,230 @@ function micFrame(t) {
   feedMic(midiF, t);
 }
 function updateDisp() {
-  const c = IN.cur;
-  let target = null;
+  const c = IN.cur; let target = null;
   if (c && c.pad) target = c.midi; else if (IN.last.midiF != null) target = IN.last.midiF;
-  if (target != null) {
-    if (IN.disp == null || Math.abs(target - IN.disp) > 6) IN.disp = target; else IN.disp += (target - IN.disp) * 0.45;
-    IN.dispAlpha = 1;
-  } else IN.dispAlpha = Math.max(0, IN.dispAlpha - 0.06);
+  if (target != null) { if (IN.disp == null || Math.abs(target - IN.disp) > 6) IN.disp = target; else IN.disp += (target - IN.disp) * 0.45; IN.dispAlpha = 1; }
+  else IN.dispAlpha = Math.max(0, IN.dispAlpha - 0.06);
 }
 
-/* ================= Units and game ================= */
+/* ================= Units, drones, powers ================= */
 const U = {
-  inf: { key:'inf', name:'Infantry', motif:[0,2,4], cost:30, hp:60,  dmg:8,  cd:0.8,  range:0,  speed:26, r:11 },
-  rng: { key:'rng', name:'Ranged',   motif:[0,1,5], cost:45, hp:36,  dmg:7,  cd:1.05, range:95, speed:22, r:10, proj:true },
-  hvy: { key:'hvy', name:'Heavy',    motif:[0,3,6], cost:70, hp:170, dmg:15, cd:1.45, range:0,  speed:15, r:15 },
+  inf: { key:'inf', name:'Infantry', cell:[0,2,4], cost:30, hp:60,  dmg:8,  cd:0.8,  range:0,  speed:26, r:11, xp:10 },
+  rng: { key:'rng', name:'Ranged',   cell:[0,1,5], cost:45, hp:36,  dmg:7,  cd:1.05, range:95, speed:22, r:10, xp:14, proj:true },
+  hvy: { key:'hvy', name:'Heavy',    cell:[0,3,6], cost:70, hp:170, dmg:15, cd:1.45, range:0,  speed:15, r:15, xp:24 },
 };
 const ORDER = ['inf','rng','hvy'];
 const LANE = { len: 600, youX: 28, foeX: 572, baseHalf: 16, baseHp: 600 };
+const ARMOR_HP = 25, ARMOR_COST = 12, RESTORE_COST = 15, TIER_XP = [150, 400, 800];
+const turnCost = u => 35 + 10 * u.turnCount;
+function stats(type, tier, boss) {
+  const b = U[type], m = tier - 1;
+  return { hp: Math.round(b.hp * (1 + 0.5 * m) * (boss ? 1.5 : 1)), dmg: b.dmg * (1 + 0.4 * m), cd: b.cd, range: b.range, speed: b.speed * (boss ? 0.85 : 1),
+           r: b.r * (1 + 0.08 * m) * (boss ? 1.4 : 1), cost: Math.round(b.cost * (1 + 0.25 * m) / 5) * 5, proj: !!b.proj };
+}
+// A unit's phrase: its 3-note cell, then one note of the cell an octave up per evolution
+function phraseNotes(type, tier) { const c = U[type].cell, n = c.map(d => [d, 0]); for (let i = 0; i < tier - 1; i++) n.push([c[i], 1]); return n; }
+const windowLen = tier => (2 + tier) * 1.0;   // armor window grows with phrase length
+const DRONES = [
+  { name: 'Home',    mana: 12, desc: 'most mana' },
+  { name: 'Haste',   mana: 4,  desc: 'your units move and strike faster' },
+  { name: 'Siphon',  mana: 6,  desc: 'steals from the enemy budget' },
+  { name: 'Slow',    mana: 4,  desc: 'enemy units slow down' },
+  { name: 'Ward',    mana: 4,  desc: 'adds an armor layer to your units every 3 s' },
+  { name: 'Resolve', mana: 4,  desc: 'heals your units' },
+  { name: 'Pierce',  mana: 4,  desc: 'your attacks ignore armor' },
+];
+const POWERS = {
+  rally:  { id: 'rally',  name: 'Rally',  notes: [[1,0],[2,0],[3,0]], cost: 30, cd: 12, desc: 'starts on Haste (2) and steps upward: your units move and strike 50% faster for 6 s.' },
+  wall:   { id: 'wall',   name: 'Wall',   notes: [[4,0],[5,0],[4,0]], cost: 35, cd: 14, desc: 'starts on Ward (5) and holds its ground: a barrier before your gate soaks 220 damage for 10 s.' },
+  volley: { id: 'volley', name: 'Volley', notes: [[6,0],[0,1],[2,1]], cost: 40, cd: 10, desc: 'starts on Pierce (7) and leaps upward: arrows hit the three nearest enemies for 24, through armor.' },
+};
 const ICON = {
   inf: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="currentColor"/></svg>',
   rng: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 14.5 14h-13z" fill="currentColor"/></svg>',
   hvy: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="currentColor"/></svg>',
+  turn: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2v3h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  back: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2v3h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  power: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1 3 9h4l-1 6 6-8H8z" fill="currentColor"/></svg>',
 };
+
+/* ================= Game state ================= */
 let G = null, screen = 'setup';
 function newGame() {
-  G = { t: 0, running: true, over: false, mana: 60, manaMax: 200, hp: [LANE.baseHp, LANE.baseHp],
-        units: [], proj: [], fx: [], rings: [], motif: [], motifT: 0, trail: [], foeMana: 20, nextPick: 'inf', spawnQueue: [], wave: 1,
-        drone: null, id: 1, stats: { summoned: 0, manaEarned: 0, accSum: 0, accT: 0, refs: 0 } };
+  G = { t: 0, running: true, over: false, mana: 60, manaMax: 220, hp: [LANE.baseHp, LANE.baseHp],
+        units: [], proj: [], fx: [], rings: [], buf: [], bufT: 0, pending: null, trail: [],
+        foeMana: 20, nextPick: 'inf', nextTier: 1, spawnQueue: [], wave: 1, bossDone: false,
+        tier: 1, xp: 0, accEma: 0.85, lastRef: 0, wardT: 0, turretCd: [1, 1], wall: null, rallyUntil: 0, cd: {},
+        enemySong: null, nextTurn: 60 + Math.random() * 10,
+        drone: null, id: 1, stats: { summoned: 0, armored: 0, turned: 0, lost: 0, manaEarned: 0, accSum: 0, accT: 0, refs: 0, xp: 0 } };
 }
 const accuracy = cAbs => cAbs <= 20 ? 1 : clamp(1 - (cAbs - 20) / 40 * 0.6, 0.4, 1);
-function spawn(side, type) {
-  const d = U[type];
-  G.units.push({ id: G.id++, side, type, x: side === 0 ? LANE.youX + LANE.baseHalf + 4 : LANE.foeX - LANE.baseHalf - 4,
-                 hp: d.hp, max: d.hp, cd: 0.4, bob: Math.random() * 6.28, seed: Math.random() * 1000, born: G.t });
+const accMult = () => 0.6 + 0.6 * G.accEma;
+const streakMult = () => 1 + Math.min(1, (G.t - G.lastRef) / 60);
+function spawn(side, type, tier, opts) {
+  opts = opts || {};
+  const st = stats(type, tier, opts.boss);
+  const u = { id: G.id++, side, origSide: side, type, tier, st, x: side === 0 ? LANE.youX + LANE.baseHalf + 4 : LANE.foeX - LANE.baseHalf - 4,
+              hp: st.hp, max: st.hp, armor: opts.armor || 0, armorHp: opts.armor ? ARMOR_HP : 0, cd: 0.4, bob: Math.random() * 6.28, seed: Math.random() * 1000,
+              born: G.t, windowUntil: opts.window ? G.t + opts.window : 0, sang: !opts.window, boss: !!opts.boss, turnCount: 0 };
+  G.units.push(u);
+  if (side === 1 && S.songs && AC && G.units.filter(x => x.side === 1).length <= 6) playNotes(phraseNotes(type, tier), { dur: 0.2, gap: 0.05, vol: 0.14, enemy: true, preview: false });
+  return u;
 }
-const FOE_RATE = t => 2.6 + t / 120;
 function pickEnemy() { const r = Math.random(); if (G.t > 80 && r < 0.2) return 'hvy'; if (G.t > 30 && r < 0.45) return 'rng'; return 'inf'; }
+function enemySpawn(type, tier) {
+  const f = F(), armor = Math.random() < f.armorChance ? 1 + (FI === 2 && Math.random() < 0.3 ? 1 : 0) : 0;
+  spawn(1, type, tier || 1, { armor });
+}
 function enemyTick(dt) {
-  G.foeMana += FOE_RATE(G.t) * dt;
-  if (G.t > 5 && G.foeMana >= U[G.nextPick].cost) { G.foeMana -= U[G.nextPick].cost; spawn(1, G.nextPick); G.nextPick = pickEnemy(); }
+  const siphon = G.drone && G.drone.ok && G.drone.deg === 2;
+  G.foeMana += F().budget(G.t) * (siphon ? 0.6 : 1) * dt;
+  const nc = stats(G.nextPick, G.nextTier).cost;
+  if (G.t > 5 && G.foeMana >= nc) { G.foeMana -= nc; enemySpawn(G.nextPick, G.nextTier); G.nextPick = pickEnemy(); G.nextTier = F().tier2(G.t) ? 2 : 1; }
   const w = 1 + Math.floor(G.t / 50);
   if (w > G.wave) {
-    G.wave = w; const n = Math.min(w, 4);
+    G.wave = w; const n = Math.min(w, 3);
     for (let i = 0; i < n; i++) G.spawnQueue.push({ at: G.t + i * 1.4, type: (i === 0 && w >= 3) ? 'hvy' : (i % 2 ? 'rng' : 'inf') });
     toast('Wave ' + w);
   }
-  while (G.spawnQueue.length && G.spawnQueue[0].at <= G.t) spawn(1, G.spawnQueue.shift().type);
+  while (G.spawnQueue.length && G.spawnQueue[0].at <= G.t) enemySpawn(G.spawnQueue.shift().type);
+  if (F().boss && !G.bossDone && G.t > 110) {
+    G.bossDone = true; spawn(1, 'hvy', 3, { boss: true, armor: 3 });
+    banner('The Choir Captain', 'A tier 3 Heavy with 3 armor layers. Pierce, Volley or its backward phrase will crack it.');
+  }
+  // enemy turning: sings one of your units' phrases backwards, out loud, at a steady tempo
+  if (F().turnEvery && !G.enemySong && G.t >= G.nextTurn) {
+    const mine = G.units.filter(u => u.side === 0 && u.hp > 0);
+    if (mine.length) {
+      const tgt = mine.reduce((a, b) => (b.x > a.x ? b : a));
+      G.enemySong = { id: tgt.id, notes: phraseNotes(tgt.type, tgt.tier).slice().reverse(), i: 0, nextAt: G.t + 0.4, endAt: 0 };
+      toast('The enemy is singing your ' + U[tgt.type].name + ' backwards');
+    }
+    G.nextTurn = G.t + F().turnEvery * (0.8 + Math.random() * 0.4);
+  }
+  const es = G.enemySong;
+  if (es) {
+    const tgt = G.units.find(u => u.id === es.id && u.hp > 0 && u.side === 0);
+    if (!tgt) G.enemySong = null;
+    else if (es.i < es.notes.length && G.t >= es.nextAt) {
+      if (AC) playNotes([es.notes[es.i]], { dur: 0.36, gap: 0, vol: 0.34, enemy: true, preview: false });
+      es.i++; es.nextAt = G.t + 0.46; if (es.i >= es.notes.length) es.endAt = G.t + 0.4;
+    } else if (es.endAt && G.t >= es.endAt) {
+      G.enemySong = null;
+      if (tgt.armor > 0) { tgt.armor--; tgt.armorHp = tgt.armor ? ARMOR_HP : 0; sfx.crack(tgt.x); toast('Armor held. One layer broke instead'); }
+      else { tgt.side = 1; tgt.turnCount++; tgt.armor = 0; tgt.armorHp = 0; tgt.dazeUntil = G.t + 3; G.stats.lost++; sfx.turn(tgt.x); toast('Your ' + U[tgt.type].name + ' was turned. Sing its phrase forwards to win it back, it\'s dazed for 3 s'); }
+    }
+  }
 }
-function damage(u, dmg) {
-  u.hp -= dmg; splat(u.x, -U[u.type].r, u.side ? COL.indigo : COL.seal, 3);
-  if (u.hp <= 0) { splat(u.x, -U[u.type].r, STYLE === 'overtone' ? (u.side ? COL.indigo : COL.seal) : COL.ink, 12); sfx.death(u.x); }
+function gainXP(u) {
+  const add = U[u.type].xp * u.tier * (u.boss ? 5 : 1) * accMult() * streakMult() * F().xp;
+  G.xp += add; G.stats.xp += add;
+  while (G.tier < 4 && G.xp >= TIER_XP[G.tier - 1]) {
+    G.tier++; G.buf = []; G.pending = null; sfx.evolve();
+    const added = phraseNotes('inf', G.tier).slice(-1)[0];
+    banner('Evolution · tier ' + G.tier, 'Every unit phrase gains a note an octave up. Infantry is now ' + phraseNotes('inf', G.tier).map(degTxt).join('-') + '.');
+    ui.tabKey = null;
+  }
+}
+function damage(u, dmg, pierce, bySide) {
+  if (u.hp <= 0) return;
+  if (!pierce && u.armor > 0) {
+    const a = Math.min(dmg, u.armorHp); u.armorHp -= a; dmg -= a;
+    if (u.armorHp <= 0.01) { u.armor--; u.armorHp = u.armor > 0 ? ARMOR_HP : 0; sfx.crack(u.x); }
+  }
+  splat(u.x, -u.st.r, u.side ? COL.indigo : COL.seal, 3);
+  if (dmg <= 0) return;
+  u.hp -= dmg;
+  if (u.hp <= 0) {
+    splat(u.x, -u.st.r, STYLE === 'overtone' ? (u.side ? COL.indigo : COL.seal) : COL.ink, 12); sfx.death(u.x);
+    if (bySide === 0 && u.side === 1) gainXP(u);
+    if (G.enemySong && G.enemySong.id === u.id) G.enemySong = null;
+  }
 }
 function damageBase(side, dmg) {
+  dmg *= 1.5;   // siege bonus: a push that reaches a gate ends things quickly
   G.hp[side] = Math.max(0, G.hp[side] - dmg); sfx.base(side);
   splat(side === 0 ? LANE.youX + LANE.baseHalf : LANE.foeX - LANE.baseHalf, -30, side ? COL.indigo : COL.seal, 4);
-  if (G.hp[side] <= 0) endGame(side === 1);
+  if (G.hp[side] <= 0 && !G.over) endFloor(side === 1);
 }
-function splat(x, y, color, n) {
-  for (let i = 0; i < n; i++) G.fx.push({ x, y, vx: (Math.random() - 0.5) * 60, vy: -Math.random() * 60 - 10, life: 0.5 + Math.random() * 0.4, age: 0, r: 1 + Math.random() * 2.2, color });
-}
+function splat(x, y, color, n) { for (let i = 0; i < n; i++) G.fx.push({ x, y, vx: (Math.random() - 0.5) * 60, vy: -Math.random() * 60 - 10, life: 0.5 + Math.random() * 0.4, age: 0, r: 1 + Math.random() * 2.2, color }); }
+
 function update(dt) {
   G.t += dt;
   const c = IN.cur;
-  if (c && !c.committed && now() - c.start >= MOTIF_MIN_MS) { c.committed = true; motifNote(c, c.start); }
+  if (c && !c.committed && now() - c.start >= MOTIF_MIN_MS) { c.committed = true; onNote(c, c.start); }
   if (c && !c.drone && now() - c.start >= DRONE_MS) { c.drone = true; onDroneStart(c); }
   if (c && c.drone) {
     const info = noteInfo(c.midi);
     if (info.oct >= 0 && info.deg >= 0) {
-      const acc = accuracy(c.cAbs), rate = (info.deg === 0 ? 10 : 4) * acc;
+      const acc = accuracy(c.cAbs), rate = DRONES[info.deg].mana * acc;
       const add = Math.min(rate * dt, G.manaMax - G.mana);
       G.mana += add; G.stats.manaEarned += add; G.stats.accSum += acc * dt; G.stats.accT += dt;
+      G.accEma += (acc - G.accEma) * Math.min(1, dt * 0.3);
       G.drone = { deg: info.deg, rate, acc, ok: true };
     } else G.drone = { ok: false, below: info.oct < 0 };
   } else G.drone = null;
-  if (G.motif.length && now() - G.motifT > GAP_MS + MOTIF_MIN_MS + 80) { if (G.motif.length >= 2) hint('Too long between notes. Keep each gap under about 2 seconds.'); G.motif = []; }
+  const dr = G.drone && G.drone.ok ? G.drone.deg : -1;
+  if (G.pending && now() - G.pending.at > 900) { firePhrase(G.pending.p); G.pending = null; G.buf = []; }
+  if (G.buf.length && now() - G.bufT > GAP_MS + MOTIF_MIN_MS + 80) { if (G.buf.length >= 2) hint('Too long between notes. Keep each gap under about 2 seconds.'); G.buf = []; }
+  if (dr === 4) { G.wardT += dt; if (G.wardT >= 3) { G.wardT = 0; let any = false; for (const u of G.units) if (u.side === 0 && u.armor < 3) { if (!u.armor) u.armorHp = ARMOR_HP; u.armor++; any = true; } if (any) sfx.armor(LANE.youX + 60); } } else G.wardT = 0;
+  if (dr === 5) for (const u of G.units) if (u.side === 0) u.hp = Math.min(u.max, u.hp + u.max * 0.05 * dt);
   enemyTick(dt);
+  const haste = (dr === 1 ? 1.35 : 1) * (G.t < G.rallyUntil ? 1.5 : 1), slow = dr === 3 ? 0.65 : 1, pierceAll = dr === 6;
+  if (G.wall && (G.t > G.wall.until || G.wall.hp <= 0)) G.wall = null;
   for (const u of G.units) {
     if (u.hp <= 0) continue;
-    const d = U[u.type], dir = u.side === 0 ? 1 : -1;
-    u.cd -= dt;
+    if (u.dazeUntil > G.t) { u.bob += dt * 3; continue; }
+    const st = u.st, dir = u.side === 0 ? 1 : -1, sp = u.side === 0 ? haste : slow, atk = u.side === 0 ? haste : 1;
+    u.cd -= dt * atk;
     let target = null, tdist = Infinity, block = false;
     for (const e of G.units) {
       if (e === u || e.hp <= 0) continue;
       const dist = (e.x - u.x) * dir;
       if (e.side !== u.side) { if (dist > -8 && dist < tdist) { tdist = dist; target = e; } }
-      else if (dist > 0 && dist < d.r + U[e.type].r + 3) block = true;
+      else if (dist > 0 && dist < st.r + e.st.r + 3) block = true;
     }
-    const baseFront = u.side === 0 ? LANE.foeX - LANE.baseHalf : LANE.youX + LANE.baseHalf;
+    let baseFront = u.side === 0 ? LANE.foeX - LANE.baseHalf : LANE.youX + LANE.baseHalf, wallHit = false;
+    if (u.side === 1 && G.wall && u.x > G.wall.x) { baseFront = G.wall.x + 5; wallHit = true; }
     const baseDist = (baseFront - u.x) * dir;
-    const contact = target ? d.r + U[target.type].r + 3 : 0;
-    const reachT = target && (d.proj ? tdist <= d.range : tdist <= contact);
-    const reachB = d.proj ? baseDist <= d.range : baseDist <= d.r + 3;
+    const contact = target ? st.r + target.st.r + 3 : 0;
+    const reachT = target && (st.proj ? tdist <= st.range : tdist <= contact);
+    const reachB = st.proj ? baseDist <= st.range : baseDist <= st.r + 3;
     if (reachT || reachB) {
       if (u.cd <= 0) {
-        u.cd = d.cd;
-        if (d.proj) { G.proj.push({ side: u.side, x: u.x, x0: u.x, tid: reachT ? target.id : null, toX: reachT ? target.x : baseFront, dmg: d.dmg }); sfx.thwip(u.x); }
-        else { if (u.type === 'hvy') sfx.taiko(u.x); else sfx.clack(u.x); if (reachT) damage(target, d.dmg); else damageBase(1 - u.side, d.dmg); }
+        u.cd = st.cd; const pierce = u.side === 0 && pierceAll;
+        if (st.proj) { G.proj.push({ side: u.side, x: u.x, x0: u.x, tid: reachT ? target.id : null, toX: reachT ? target.x : baseFront, dmg: st.dmg, pierce, wall: !reachT && wallHit }); sfx.thwip(u.x); }
+        else {
+          if (u.type === 'hvy') sfx.taiko(u.x); else sfx.clack(u.x);
+          if (reachT) damage(target, st.dmg, pierce, u.side);
+          else if (wallHit) { G.wall.hp -= st.dmg; sfx.clack(G.wall.x); }
+          else damageBase(1 - u.side, st.dmg);
+        }
         u.lunge = 0.15;
       }
-    } else if (!block && !(target && tdist <= contact)) { u.x += dir * d.speed * dt; u.bob += dt * 9; }
+    } else if (!block && !(target && tdist <= contact)) { u.x += dir * st.speed * sp * dt; u.bob += dt * 9 * sp; }
     if (u.lunge) u.lunge = Math.max(0, u.lunge - dt);
+    // once its armor window closes, a new unit hums its phrase
+    if (!u.sang && G.t > u.windowUntil) { u.sang = true; if (S.songs && AC) playNotes(phraseNotes(u.type, u.tier), { dur: 0.2, gap: 0.05, vol: 0.13, preview: false }); }
+  }
+  // gate turrets
+  for (const side of [0, 1]) {
+    G.turretCd[side] -= dt; if (G.turretCd[side] > 0) continue;
+    const gx = side === 0 ? LANE.youX : LANE.foeX;
+    let best = null, bd = 90;
+    for (const e of G.units) if (e.side !== side && e.hp > 0) { const d = Math.abs(e.x - gx); if (d < bd) { bd = d; best = e; } }
+    if (best) { G.proj.push({ side, x: gx, x0: gx, tid: best.id, toX: best.x, dmg: 4, pierce: false, high: true }); G.turretCd[side] = 2.0; sfx.tick(gx); }
   }
   for (const p of G.proj) {
     const tgt = p.tid ? G.units.find(x => x.id === p.tid && x.hp > 0) : null;
     if (p.tid && !tgt) { p.done = true; continue; }
     const tx = tgt ? tgt.x : p.toX, dx = tx - p.x, step = 260 * dt;
-    if (Math.abs(dx) <= step) { p.done = true; sfx.tick(tx); if (tgt) damage(tgt, p.dmg); else damageBase(1 - p.side, p.dmg); }
-    else p.x += Math.sign(dx) * step;
+    if (Math.abs(dx) <= step) {
+      p.done = true; sfx.tick(tx);
+      if (tgt) damage(tgt, p.dmg, p.pierce, p.side);
+      else if (p.wall) { if (G.wall) G.wall.hp -= p.dmg; }
+      else damageBase(1 - p.side, p.dmg);
+    } else p.x += Math.sign(dx) * step;
     p.toX = tx;
   }
   G.proj = G.proj.filter(p => !p.done);
@@ -726,79 +889,143 @@ function update(dt) {
   G.rings = G.rings.filter(r => r.age < 0.9);
 }
 
-/* motifs */
-function prefixOk(m, buf) {
-  if (buf.length > m.length) return false;
-  for (let i = 0; i < buf.length; i++) if (buf[i].oct !== 0 || buf[i].deg !== m[i]) return false;
-  return true;
+/* ================= Phrase engine ================= */
+// Every phrase the player could sing right now: unit summons at the current tier, backward phrases for the enemies on the field,
+// forward phrases to win back your turned units, and the powers this floor has unlocked.
+function activePhrases() {
+  const list = [];
+  for (const k of ORDER) list.push({ id: 'sum-' + k, kind: 'summon', type: k, tier: G.tier, notes: phraseNotes(k, G.tier), prio: 2 });
+  if (F().turnEvery) {
+    const seen = {};
+    for (const u of G.units) {
+      if (u.side !== 1) continue;
+      if (u.origSide === 0) { const k2 = 'back-' + u.type + u.tier; if (!seen[k2]) { seen[k2] = 1; list.push({ id: k2, kind: 'restore', type: u.type, tier: u.tier, notes: phraseNotes(u.type, u.tier), prio: 3 }); } }
+      else { const key = 'ret-' + u.type + u.tier + (u.boss ? 'b' : ''); if (!seen[key]) { seen[key] = 1; list.push({ id: key, kind: 'retro', type: u.type, tier: u.tier, boss: u.boss, notes: phraseNotes(u.type, u.tier).slice().reverse(), prio: 1 }); } }
+    }
+  }
+  for (const pid of F().powers) list.push({ id: 'pow-' + pid, kind: 'power', power: pid, notes: POWERS[pid].notes, prio: 0 });
+  return list;
 }
+const sameNote = (a, b) => a[0] === b[0] && a[1] === b[1];
+function prefixOf(p, buf) { if (buf.length > p.notes.length) return false; for (let i = 0; i < buf.length; i++) if (!sameNote(p.notes[i], buf[i])) return false; return true; }
 let lastHint = 0;
 function hint(msg) { const t = now(); if (t - lastHint > 2500) { lastHint = t; toast(msg); } }
 function pushTrail(info) {
   const txt = info.deg < 0 ? pretty(info.name) : (info.deg + 1) + (info.oct > 0 ? '′'.repeat(info.oct) : info.oct < 0 ? '‚' : '');
-  G.trail.push({ txt, bad: info.deg < 0 || info.oct < 0 }); if (G.trail.length > 8) G.trail.shift();
+  G.trail.push({ txt, bad: info.deg < 0 || info.oct < 0 }); if (G.trail.length > 9) G.trail.shift();
 }
-const matchSet = buf => ORDER.filter(k => prefixOk(U[k].motif, buf));
-function motifNote(n, t) {
+function onNote(n, t) {
   if (!G || !G.running || G.over) return;
   const info = noteInfo(n.midi);
   pushTrail(info);
   G.rings.push({ age: 0, deg: info.deg, oct: info.oct });
-  if (G.motif.length && t - G.motifT > GAP_MS) G.motif = [];
-  if (info.oct < 0) { hint(label(info) + ' is below your home 1, ' + label(noteInfo(S.home)) + '.'); G.motif = []; return; }
-  if (info.deg < 0) { if (G.motif.length) hint(label(info) + ' is out of key, so the motif restarts.'); G.motif = []; return; }
-  const isHome = info.deg === 0 && info.oct === 0;
-  const last = G.motif[G.motif.length - 1];
-  // the same note again (a wobble or a re-sung syllable) continues it instead of breaking the motif
-  if (last && last.deg === info.deg && last.oct === info.oct) { last.n = n; G.motifT = t; return; }
-  if (!G.motif.length && !isHome) {
-    if (info.deg === 0) hint('Motifs start on your home 1, ' + label(noteInfo(S.home)) + '. That was ' + label(info) + '.');
-    return;
-  }
-  const entry = { deg: info.deg, oct: info.oct, n };
-  let next = G.motif.concat([entry]), cands = matchSet(next);
-  // the note before may have been a passing tone on the way here: try without it
-  if (!cands.length && G.motif.length >= 2) {
-    const alt = G.motif.slice(0, -1).concat([entry]), c2 = matchSet(alt);
+  G.accEma += ((n.pad ? 1 : accuracy(n.cAbs)) - G.accEma) * 0.2;
+  if (G.buf.length && t - G.bufT > GAP_MS) G.buf = [];
+  if (info.oct < 0) { hint(label(info) + ' is below your home 1, ' + label(noteInfo(S.home)) + '.'); resolvePending(); G.buf = []; return; }
+  if (info.deg < 0) { if (G.buf.length) hint(label(info) + ' is out of key, so the phrase restarts.'); resolvePending(); G.buf = []; return; }
+  const note = [info.deg, info.oct], last = G.buf[G.buf.length - 1];
+  if (last && sameNote(last, note)) { G.bufT = t; last.n = n; return; }   // the same note again is a wobble, not a new note
+  const phrases = activePhrases();
+  let next = G.buf.concat([note]), cands = phrases.filter(p => prefixOf(p, next));
+  if (!cands.length && G.buf.length >= 2) {   // the note before may have been a passing tone
+    const alt = G.buf.slice(0, -1).concat([note]), c2 = phrases.filter(p => prefixOf(p, alt));
     if (c2.length) { next = alt; cands = c2; }
   }
   if (!cands.length) {
-    const prev = G.motif;
-    const opts = matchSet(prev).map(k => (U[k].motif[prev.length] + 1) + ' for ' + U[k].name);
-    if (!isHome && prev.length && opts.length) hint('After ' + prev.map(m => m.deg + 1).join('-') + ', sing ' + opts.join(' or ') + '.');
-    G.motif = isHome ? [entry] : []; G.motifT = t;
+    const hadPending = !!G.pending;
+    resolvePending();
+    if (G.buf.length >= 2 && !hadPending) {
+      const opts = phrases.filter(p => prefixOf(p, G.buf)).map(p => degTxt(p.notes[G.buf.length]) + ' for ' + phraseName(p));
+      if (opts.length) hint('After ' + G.buf.map(degTxt).join('-') + ', sing ' + opts.slice(0, 2).join(' or ') + '.');
+    }
+    const starts = phrases.filter(p => sameNote(p.notes[0], note));
+    note.n = n; G.buf = starts.length ? [note] : []; G.bufT = t;
+    if (!starts.length && info.deg === 0 && info.oct > 0) hint('Unit phrases start on your home 1, ' + label(noteInfo(S.home)) + '. That was ' + label(info) + '.');
     return;
   }
-  G.motif = next; G.motifT = t;
-  const full = cands.find(k => U[k].motif.length === G.motif.length);
-  if (full) { trySummon(full); G.motif = []; }
+  G.pending = null;
+  next[next.length - 1].n = n;
+  G.buf = next; G.bufT = t;
+  const complete = cands.filter(p => p.notes.length === G.buf.length);
+  if (!complete.length) return;
+  const best = complete.slice().sort((a, b) => b.prio - a.prio)[0];
+  if (cands.some(p => p.notes.length > G.buf.length)) { G.pending = { p: best, at: now() }; return; }   // a longer phrase might follow
+  firePhrase(best); G.buf = [];
 }
-function onDroneStart(n) {
-  if (G && G.motif.length && G.motif[G.motif.length - 1].n === n) {
-    if (G.motif.length >= 2) hint('That note was held long enough to become a drone, so the motif restarts.');
-    G.motif = [];
+function resolvePending() { if (G.pending) { const p = G.pending.p; G.pending = null; firePhrase(p); } }
+function onDroneStart(n) { if (G && G.buf.length && G.buf[G.buf.length - 1].n === n) { if (G.buf.length >= 2) hint('That note was held long enough to become a drone, so the phrase restarts.'); G.buf = []; G.pending = null; } }
+function phraseName(p) {
+  if (p.kind === 'summon') return U[p.type].name;
+  if (p.kind === 'retro') return 'turning ' + (p.boss ? 'the Captain' : U[p.type].name);
+  if (p.kind === 'restore') return 'winning back ' + U[p.type].name;
+  return POWERS[p.power].name;
+}
+function pay(cost, what, pid) {
+  if (G.mana < cost) { toast(what + ' needs ' + cost + ' mana. Drone 1 to earn more.'); sfx.fail(); pulse(pid, 'fail'); return false; }
+  G.mana -= cost; return true;
+}
+function firePhrase(p) {
+  if (!G || G.over) return;
+  if (p.kind === 'summon') {
+    const w = G.units.filter(u => u.side === 0 && u.origSide === 0 && u.type === p.type && u.tier === G.tier && u.windowUntil > G.t).sort((a, b) => b.born - a.born)[0];
+    if (w) {
+      if (w.armor >= 3) { toast('That ' + U[p.type].name + ' already has 3 armor layers'); return; }
+      if (!pay(ARMOR_COST, 'Armor', p.id)) return;
+      if (!w.armor) w.armorHp = ARMOR_HP; w.armor++; w.windowUntil = Math.max(w.windowUntil, G.t + 1.2); G.stats.armored++;
+      sfx.armor(w.x); pulse(p.id, 'ok'); toast(U[p.type].name + ' armored · ' + w.armor + ' of 3'); return;
+    }
+    const st = stats(p.type, G.tier);
+    if (!pay(st.cost, U[p.type].name, p.id)) return;
+    spawn(0, p.type, G.tier, { window: windowLen(G.tier) }); G.stats.summoned++; sfx.summon(); pulse(p.id, 'ok');
+    toast(U[p.type].name + ' summoned. Sing it again within ' + Math.round(windowLen(G.tier)) + ' s to armor it');
+  } else if (p.kind === 'restore') {
+    const u = G.units.filter(x => x.side === 1 && x.origSide === 0 && x.type === p.type && x.tier === p.tier).sort((a, b) => a.x - b.x)[0];
+    if (!u || !pay(RESTORE_COST, 'Winning back', p.id)) return;
+    u.side = 0; sfx.turn(u.x); pulse(p.id, 'ok'); toast(U[p.type].name + ' won back');
+  } else if (p.kind === 'retro') {
+    const u = G.units.filter(x => x.side === 1 && x.origSide === 1 && x.type === p.type && x.tier === p.tier && !!x.boss === !!p.boss).sort((a, b) => a.x - b.x)[0];
+    if (!u || !pay(turnCost(u), 'Turning', p.id)) return;
+    u.turnCount++;
+    if (u.armor > 0) { u.armor--; u.armorHp = u.armor ? ARMOR_HP : 0; sfx.crack(u.x); pulse(p.id, 'ok'); toast('Cracked an armor layer · ' + u.armor + ' left'); return; }
+    u.side = 0; u.dazeUntil = G.t + 2; G.stats.turned++; sfx.turn(u.x); pulse(p.id, 'ok'); toast((u.boss ? 'The Captain' : 'An enemy ' + U[u.type].name) + ' now fights for you');
+  } else if (p.kind === 'power') {
+    const pw = POWERS[p.power];
+    if ((G.cd[pw.id] || 0) > G.t) { toast(pw.name + ' is recharging'); return; }
+    if (!pay(pw.cost, pw.name, p.id)) return;
+    G.cd[pw.id] = G.t + pw.cd; pulse(p.id, 'ok');
+    if (pw.id === 'rally') { G.rallyUntil = G.t + 6; sfx.rally(); toast('Rally! Your units surge'); }
+    else if (pw.id === 'wall') { G.wall = { x: LANE.youX + 70, hp: 220, max: 220, until: G.t + 10 }; sfx.wall(); toast('A wall rises before your gate'); }
+    else {
+      const foes = G.units.filter(u => u.side === 1).sort((a, b) => a.x - b.x).slice(0, 3);
+      foes.forEach(f => G.proj.push({ side: 0, x: LANE.youX, x0: LANE.youX, tid: f.id, toX: f.x, dmg: 24, pierce: true, high: true }));
+      sfx.volley(); toast(foes.length ? 'Volley!' : 'Volley, but nothing to hit');
+    }
   }
 }
-function trySummon(k) {
-  const d = U[k];
-  if (G.mana < d.cost) { toast(d.name + ' needs ' + d.cost + ' mana. Drone 1 to earn more.'); sfx.fail(); pulseCard(k, 'fail'); return; }
-  G.mana -= d.cost; spawn(0, k); G.stats.summoned++; sfx.summon(); pulseCard(k, 'ok'); toast(d.name + ' summoned');
-}
-function endGame(won) {
+
+function endFloor(won) {
   G.over = true; G.running = false; won ? sfx.win() : sfx.lose();
+  if (won) store.set('reached', Math.max(store.get('reached', 0), FI + 1));
   const acc = G.stats.accT > 0 ? Math.round(G.stats.accSum / G.stats.accT * 100) + '%' : '—';
   const mm = Math.floor(G.t / 60), ss = String(Math.floor(G.t % 60)).padStart(2, '0');
-  $('#endEyebrow').textContent = 'Floor 1 · C Ionian';
-  $('#endTitle').textContent = won ? 'The enemy gate falls' : 'Your gate fell';
+  const last = FI === FLOORS.length - 1;
+  $('#endEyebrow').textContent = 'Floor ' + (FI + 1) + ' · ' + keyLabel();
+  $('#endTitle').textContent = won ? (last ? 'The Ionian Steps are yours' : 'Floor ' + (FI + 1) + ' cleared') : 'Your gate fell';
+  $('#endNote').textContent = won ? (last ? 'All three keys answered you. The next dungeon would carry on around the circle of fifths.' : 'Next: ' + KEY_NAME[FLOORS[FI + 1].pc] + ' Ionian. Evolutions start over on each floor.') : 'Retry the floor, or go back to setup to check your range.';
   $('#endStats').innerHTML = [
-    ['Time', mm + ':' + ss], ['Units summoned', G.stats.summoned], ['Mana from drones', Math.round(G.stats.manaEarned)],
-    ['Drone tuning', acc], ['Reference presses', G.stats.refs], ['Waves reached', G.wave]
+    ['Time', mm + ':' + ss], ['Highest tier', G.tier], ['Units summoned', G.stats.summoned], ['Armor layers sung', G.stats.armored],
+    ['Enemies turned', G.stats.turned], ['Units lost to turning', G.stats.lost], ['Mana from drones', Math.round(G.stats.manaEarned)], ['Drone tuning', acc], ['Reference presses', G.stats.refs]
   ].map(([a, b]) => '<dt>' + a + '</dt><dd>' + b + '</dd>').join('');
-  setTimeout(() => { $('#endOv').hidden = false; $('#againBtn').focus(); }, 500);
+  const btns = [];
+  if (won && !last) btns.push('<button class="btn primary" data-act="next">Next floor</button>');
+  btns.push('<button class="btn' + (won ? '' : ' primary') + '" data-act="retry">' + (won ? 'Replay floor' : 'Retry floor') + '</button>');
+  btns.push('<button class="btn" data-act="setup">Back to setup</button>');
+  $('#endBtns').innerHTML = btns.join('');
+  setTimeout(() => { $('#endOv').hidden = false; const b = $('#endBtns button'); if (b) b.focus(); }, 600);
 }
 
 /* ================= Drawing: lane ================= */
-const lane = { cv: $('#lane'), ctx: null, bg: null, bgStyle: null };
+const lane = { cv: $('#lane'), ctx: null, bg: null, bgKey: null };
 lane.ctx = lane.cv.getContext('2d');
 function sizeCanvas(cv) {
   const r = cv.getBoundingClientRect(), s = dpr();
@@ -815,10 +1042,10 @@ function ridge(x, W, H, y, amp, n, R, smooth) {
 }
 function makeBg(W, H) {
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const x = c.getContext('2d'), R = rng(11), gy = H * 0.82;
+  const x = c.getContext('2d'), R = rng(11 + FI * 7), gy = H * 0.82;
   if (STYLE === 'ink') {
     x.fillStyle = COL.paper; x.fillRect(0, 0, W, H);
-    x.globalAlpha = 0.1; x.fillStyle = COL.seal; x.beginPath(); x.arc(W * 0.7, H * 0.3, H * 0.15, 0, Math.PI * 2); x.fill();
+    x.globalAlpha = 0.1; x.fillStyle = COL.seal; x.beginPath(); x.arc(W * (0.7 - FI * 0.15), H * 0.3, H * 0.15, 0, Math.PI * 2); x.fill();
     [[0.50, 0.06, 0.18], [0.60, 0.09, 0.13], [0.70, 0.13, 0.07]].forEach(([y, a, amp]) => { x.globalAlpha = a; x.fillStyle = COL.ink; ridge(x, W, H, y, amp, 9, R, 0.05); });
     x.globalAlpha = 0.05; x.fillStyle = COL.ink; for (let i = 0; i < W * H / 900; i++) x.fillRect(R() * W, R() * H, 1, 1);
     x.globalAlpha = 0.9; x.strokeStyle = COL.ink; x.lineCap = 'round';
@@ -826,17 +1053,15 @@ function makeBg(W, H) {
   } else if (STYLE === 'silhouette') {
     const g = x.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, COL.sky1); g.addColorStop(1, COL.sky2);
     x.fillStyle = g; x.fillRect(0, 0, W, H);
-    x.globalAlpha = 0.55; x.fillStyle = '#FFFFFF'; x.beginPath(); x.arc(W * 0.72, gy - H * 0.06, H * 0.26, 0, Math.PI * 2); x.fill();
+    x.globalAlpha = 0.55; x.fillStyle = '#FFFFFF'; x.beginPath(); x.arc(W * (0.72 - FI * 0.2), gy - H * 0.06, H * 0.26, 0, Math.PI * 2); x.fill();
     x.globalAlpha = 0.85; for (let i = 0; i < 4; i++) { const cx = R() * W, cy = H * (0.12 + R() * 0.25), s = H * (0.05 + R() * 0.04); x.beginPath(); x.ellipse(cx, cy, s * 2.4, s, 0, 0, Math.PI * 2); x.ellipse(cx + s, cy - s * 0.5, s * 1.4, s * 0.9, 0, 0, Math.PI * 2); x.fill(); }
     x.globalAlpha = 0.22; x.fillStyle = COL.ink; ridge(x, W, H, 0.66, 0.12, 6, R, 0.08);
     x.globalAlpha = 1; x.fillStyle = COL.ink; x.fillRect(0, gy, W, H - gy);
-    // grass tufts along the ground edge
     for (let px = 0; px < W; px += 9 + R() * 14) { const h = 3 + R() * 7; x.beginPath(); x.moveTo(px, gy + 1); x.lineTo(px + 2, gy - h); x.lineTo(px + 4, gy + 1); x.fill(); }
   } else {
     const g = x.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, COL.sky1); g.addColorStop(1, COL.sky2);
     x.fillStyle = g; x.fillRect(0, 0, W, H);
     for (let i = 0; i < W * H / 2600; i++) { x.globalAlpha = 0.2 + R() * 0.7; x.fillStyle = COL.ink; const s = R() < 0.92 ? 1 : 2; x.fillRect(R() * W, R() * gy * 0.95, s, s); }
-    // the overtone series: arcs at 1, 1/2, 1/3 ... of the fundamental's radius
     x.strokeStyle = COL.ground; x.lineWidth = 1;
     for (let n = 1; n <= 9; n++) { x.globalAlpha = 0.28 - n * 0.02; x.beginPath(); x.arc(W / 2, gy, (W * 0.62) / n, Math.PI, 2 * Math.PI); x.stroke(); }
     x.globalAlpha = 1; x.fillStyle = COL['paper-deep']; x.fillRect(0, gy, W, H - gy);
@@ -858,8 +1083,7 @@ function drawGate(side, X, gy, gs, hpFrac) {
     ctx.globalAlpha = (1 - hpFrac) * 0.6; ctx.fillStyle = COL.paper; ctx.fillRect(-w, -h - 4 * gs, w * 2, h + 4 * gs);
   } else if (STYLE === 'silhouette') {
     const h = (52 + 22 * hpFrac) * gs, w = 26 * gs, t = now() / 1000;
-    ctx.fillStyle = COL.ink;
-    ctx.fillRect(-w / 2, -h, w, h);
+    ctx.fillStyle = COL.ink; ctx.fillRect(-w / 2, -h, w, h);
     for (let i = 0; i < 3; i++) ctx.fillRect(-w / 2 + i * w * 0.4, -h - 6 * gs, w * 0.2, 6 * gs);
     ctx.fillStyle = COL.sky2; ctx.beginPath(); ctx.arc(0, -h * 0.25, w * 0.22, Math.PI, 0); ctx.lineTo(w * 0.22, 0); ctx.lineTo(-w * 0.22, 0); ctx.fill();
     ctx.strokeStyle = COL.ink; ctx.lineWidth = 2 * gs; ctx.beginPath(); ctx.moveTo(0, -h - 6 * gs); ctx.lineTo(0, -h - 30 * gs); ctx.stroke();
@@ -869,7 +1093,7 @@ function drawGate(side, X, gy, gs, hpFrac) {
   } else {
     const h = 74 * gs, w = 14 * gs, flick = reduceMotion ? 1 : 0.85 + Math.sin(now() / 90 + side * 2) * 0.15 * (1 - hpFrac);
     ctx.globalAlpha = (0.35 + 0.65 * hpFrac) * flick;
-    ctx.strokeStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 16 * gs / 2; ctx.lineWidth = 3.2 * gs / 1.6; ctx.lineCap = 'round';
+    ctx.strokeStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 8 * gs; ctx.lineWidth = 2 * gs; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -h * 0.42);
     ctx.moveTo(-w, -h); ctx.lineTo(-w, -h * 0.55); ctx.quadraticCurveTo(-w, -h * 0.42, 0, -h * 0.42); ctx.quadraticCurveTo(w, -h * 0.42, w, -h * 0.55); ctx.lineTo(w, -h);
     ctx.stroke();
@@ -887,42 +1111,6 @@ function bodyPath(ctx, type, r, seed) {
   else if (type === 'rng') { ctx.beginPath(); ctx.moveTo(0, -r * 1.25); ctx.lineTo(r, r); ctx.lineTo(-r, r); ctx.closePath(); }
   else { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-r, -r * 0.95, r * 2, r * 1.95, r * 0.35); else ctx.rect(-r, -r * 0.95, r * 2, r * 1.95); }
 }
-function drawUnit(u, X, gy, k) {
-  const ctx = lane.ctx, d = U[u.type], s = dpr(), r = (d.r / 11) * clamp(11 * k * 1.1, 9 * s, 22 * s);
-  const dir = u.side === 0 ? 1 : -1, color = u.side === 0 ? COL.seal : COL.indigo;
-  const bounce = STYLE === 'silhouette' ? 0.32 : 0.18;
-  const bob = reduceMotion ? 0 : Math.abs(Math.sin(u.bob)) * r * bounce;
-  const lunge = u.lunge ? dir * r * 0.35 : 0;
-  const pop = clamp((G.t - u.born) / 0.25, 0, 1);
-  ctx.save(); ctx.translate(X + lunge, gy - r - bob); ctx.scale(0.4 + 0.6 * pop, 0.4 + 0.6 * pop);
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  if (STYLE === 'ink') {
-    ctx.fillStyle = color; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(1.2, r * 0.13);
-    bodyPath(ctx, u.type, r, u.seed); ctx.fill(); ctx.stroke();
-    weapon(ctx, u.type, r, dir, COL.ink);
-  } else if (STYLE === 'silhouette') {
-    ctx.fillStyle = COL.ink; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(1.5, r * 0.16);
-    bodyPath(ctx, u.type, r, u.seed); ctx.fill();
-    weapon(ctx, u.type, r, dir, COL.ink);
-    // band in the army's color, then one big eye
-    ctx.fillStyle = color; ctx.fillRect(-r * 0.8, -r * (u.type === 'rng' ? 0.35 : 0.78), r * 1.6, r * 0.26);
-    const ex = dir * r * 0.25, ey = u.type === 'rng' ? r * 0.12 : -r * 0.12;
-    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(ex, ey, r * 0.36, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.arc(ex + dir * r * 0.13, ey, r * 0.16, 0, Math.PI * 2); ctx.fill();
-  } else {
-    ctx.shadowColor = color; ctx.shadowBlur = r * 0.9; ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.4, r * 0.14);
-    ctx.globalAlpha = 0.2; ctx.fillStyle = color; bodyPath(ctx, u.type, r, u.seed); ctx.fill();
-    ctx.globalAlpha = 1; ctx.stroke();
-    weapon(ctx, u.type, r, dir, color);
-    ctx.shadowBlur = 0; ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.arc(dir * r * 0.25, -r * 0.1, r * 0.13, 0, Math.PI * 2); ctx.fill();
-  }
-  if (u.hp < u.max) {
-    ctx.shadowBlur = 0; const bw = r * 2;
-    ctx.fillStyle = COL['paper-deep']; ctx.fillRect(-bw / 2, -r * 1.8, bw, 3 * s);
-    ctx.fillStyle = color; ctx.fillRect(-bw / 2, -r * 1.8, bw * u.hp / u.max, 3 * s);
-  }
-  ctx.restore();
-}
 function weapon(ctx, type, r, dir, col) {
   ctx.strokeStyle = col; ctx.fillStyle = col;
   if (type === 'inf') { ctx.beginPath(); ctx.moveTo(dir * r * 0.2, -r * 0.2); ctx.lineTo(dir * r * 1.6, -r * 0.9); ctx.stroke(); }
@@ -930,16 +1118,62 @@ function weapon(ctx, type, r, dir, col) {
   else if (STYLE !== 'overtone') ctx.fillRect(dir > 0 ? r * 0.55 : -r * 0.95, -r * 0.7, r * 0.4, r * 1.3);
   else { ctx.beginPath(); ctx.moveTo(dir * r * 0.75, -r * 0.7); ctx.lineTo(dir * r * 0.75, r * 0.6); ctx.stroke(); }
 }
+function drawUnit(u, X, gy, k) {
+  const ctx = lane.ctx, s = dpr(), r = (u.st.r / 11) * clamp(11 * k * 1.1, 9 * s, 22 * s);
+  const dir = u.side === 0 ? 1 : -1, color = u.side === 0 ? COL.seal : COL.indigo;
+  const bob = reduceMotion ? 0 : Math.abs(Math.sin(u.bob)) * r * (STYLE === 'silhouette' ? 0.32 : 0.18);
+  const lunge = u.lunge ? dir * r * 0.35 : (u.dazeUntil > G.t && !reduceMotion ? Math.sin(G.t * 30) * r * 0.15 : 0), pop = clamp((G.t - u.born) / 0.25, 0, 1);
+  ctx.save(); ctx.translate(X + lunge, gy - r - bob); ctx.scale(0.4 + 0.6 * pop, 0.4 + 0.6 * pop);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (let i = 0; i < u.armor; i++) {   // armor layers: rings around the body
+    ctx.save(); ctx.strokeStyle = STYLE === 'silhouette' ? '#FFFFFF' : STYLE === 'overtone' ? COL.gold : COL.ink; ctx.globalAlpha = STYLE === 'ink' ? 0.55 : 0.85;
+    ctx.lineWidth = Math.max(1.2, r * 0.1); if (STYLE === 'overtone') { ctx.shadowColor = COL.gold; ctx.shadowBlur = r * 0.6; }
+    if (STYLE === 'ink') ctx.setLineDash([r * 0.5, r * 0.25]);
+    ctx.beginPath(); ctx.arc(0, 0, r * (1.3 + 0.2 * i), 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  if (STYLE === 'ink') {
+    ctx.fillStyle = color; ctx.strokeStyle = COL.ink; ctx.lineWidth = Math.max(1.2, r * 0.13);
+    bodyPath(ctx, u.type, r, u.seed); ctx.fill(); ctx.stroke(); weapon(ctx, u.type, r, dir, COL.ink);
+  } else if (STYLE === 'silhouette') {
+    ctx.fillStyle = COL.ink; ctx.lineWidth = Math.max(1.5, r * 0.16);
+    bodyPath(ctx, u.type, r, u.seed); ctx.fill(); weapon(ctx, u.type, r, dir, COL.ink);
+    ctx.fillStyle = color; ctx.fillRect(-r * 0.8, -r * (u.type === 'rng' ? 0.35 : 0.78), r * 1.6, r * 0.26);
+    const ex = dir * r * 0.25, ey = u.type === 'rng' ? r * 0.12 : -r * 0.12;
+    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(ex, ey, r * 0.36, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.arc(ex + dir * r * 0.13, ey, r * 0.16, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.shadowColor = color; ctx.shadowBlur = r * 0.9; ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.4, r * 0.14);
+    ctx.globalAlpha = 0.2; ctx.fillStyle = color; bodyPath(ctx, u.type, r, u.seed); ctx.fill();
+    ctx.globalAlpha = 1; ctx.stroke(); weapon(ctx, u.type, r, dir, color);
+    ctx.shadowBlur = 0; ctx.fillStyle = COL.ink; ctx.beginPath(); ctx.arc(dir * r * 0.25, -r * 0.1, r * 0.13, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+  for (let i = 1; i < u.tier; i++) { ctx.fillStyle = STYLE === 'overtone' ? COL.gold : COL.ink; ctx.beginPath(); ctx.arc((i - u.tier / 2) * r * 0.42, -r * 1.42, r * 0.12, 0, Math.PI * 2); ctx.fill(); }
+  if (u.boss) { ctx.fillStyle = COL.gold; ctx.beginPath(); ctx.moveTo(-r * 0.6, -r * 1.1); ctx.lineTo(-r * 0.6, -r * 1.55); ctx.lineTo(-r * 0.3, -r * 1.3); ctx.lineTo(0, -r * 1.65); ctx.lineTo(r * 0.3, -r * 1.3); ctx.lineTo(r * 0.6, -r * 1.55); ctx.lineTo(r * 0.6, -r * 1.1); ctx.closePath(); ctx.fill(); }
+  if (u.side !== u.origSide) { ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.2, r * 0.1); ctx.beginPath(); ctx.arc(0, -r * 1.9, r * 0.32, 0.3, Math.PI * 1.7); ctx.stroke(); }
+  if (u.side === 0 && u.windowUntil > G.t) {   // armor window: a shrinking gold arc while a repeat would add armor
+    const f = (u.windowUntil - G.t) / windowLen(u.tier);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = Math.max(1.5, r * 0.14); ctx.beginPath(); ctx.arc(0, 0, r * 1.18, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * clamp(f, 0, 1)); ctx.stroke();
+  }
+  if (u.hp < u.max) { const bw = r * 2; ctx.fillStyle = COL['paper-deep']; ctx.fillRect(-bw / 2, -r * 2.25, bw, 3 * s); ctx.fillStyle = color; ctx.fillRect(-bw / 2, -r * 2.25, bw * u.hp / u.max, 3 * s); }
+  ctx.restore();
+}
 function drawLane() {
-  const cv = lane.cv, ctx = lane.ctx;
-  if (sizeCanvas(cv) || !lane.bg || lane.bgStyle !== STYLE) { lane.bg = makeBg(cv.width, cv.height); lane.bgStyle = STYLE; }
+  const cv = lane.cv, ctx = lane.ctx, bgKey = STYLE + FI;
+  if (sizeCanvas(cv) || !lane.bg || lane.bgKey !== bgKey) { lane.bg = makeBg(cv.width, cv.height); lane.bgKey = bgKey; }
   const W = cv.width, H = cv.height, gy = H * 0.82, s = dpr(), padX = 8 * s;
   const k = (W - padX * 2) / LANE.len, X = x => padX + x * k;
   ctx.drawImage(lane.bg, 0, 0);
   const gs = clamp(H / (190 * s), 0.55, 1.6) * s;
   drawGate(0, X(LANE.youX), gy, gs, G.hp[0] / LANE.baseHp);
   drawGate(1, X(LANE.foeX), gy, gs, G.hp[1] / LANE.baseHp);
-  // note rings rising from your gate: one per note the game counted
+  if (G.wall) {
+    const wx = X(G.wall.x), h = 46 * gs, a = 0.35 + 0.65 * clamp(G.wall.hp / G.wall.max, 0, 1);
+    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = STYLE === 'silhouette' ? COL.ink : COL.seal;
+    if (STYLE === 'overtone') { ctx.shadowColor = COL.seal; ctx.shadowBlur = 14 * s; ctx.globalAlpha = a * 0.7; }
+    for (let i = 0; i < 4; i++) ctx.fillRect(wx - 6 * s + i * 3 * s, gy - h + (i % 2) * 6 * s, 2.4 * s, h - (i % 2) * 6 * s);
+    ctx.restore();
+  }
   for (const r of G.rings) {
     const p = r.age / 0.9, col = degCol(r.deg) || (r.deg < 0 || r.oct < 0 ? COL.seal : OCT()[Math.min(Math.max(r.oct, 0), 2)]);
     ctx.save(); ctx.globalAlpha = (1 - p) * 0.8; ctx.strokeStyle = col; ctx.lineWidth = 2 * s;
@@ -953,15 +1187,29 @@ function drawLane() {
     ctx.beginPath();
     for (let i = 0; i <= 40; i++) { const yy = gy - 78 * gs - i * (H * 0.012); const xx = x0 + Math.sin(i * 0.5 - t * 8) * amp; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
     ctx.stroke(); ctx.restore();
+    ctx.font = `700 ${11 * s}px ${FONT.body}`; ctx.fillStyle = col; ctx.textAlign = 'left';
+    ctx.fillText(DRONES[G.drone.deg].name, x0 + 12 * s, Math.max(14 * s, gy - 78 * gs - 30 * H * 0.012));
   }
   const sorted = G.units.slice().sort((a, b) => a.side - b.side);
   for (const u of sorted) drawUnit(u, X(u.x), gy, k);
+  const es = G.enemySong;   // the enemy's turning song: its notes appear above the target
+  if (es) {
+    const tgt = G.units.find(u => u.id === es.id);
+    if (tgt) {
+      const tx = X(tgt.x), ty = gy - 64 * s;
+      ctx.save(); ctx.textAlign = 'center'; ctx.font = `700 ${13 * s}px ${FONT.mono}`;
+      ctx.fillStyle = COL.indigo; if (STYLE === 'overtone') { ctx.shadowColor = COL.indigo; ctx.shadowBlur = 10 * s; }
+      ctx.fillText(es.notes.map((n, i) => i < es.i ? degTxt(n) : '·').join(' '), tx, ty);
+      ctx.globalAlpha = 0.5 + 0.5 * Math.sin(now() / 80); ctx.strokeStyle = COL.indigo; ctx.lineWidth = 2 * s;
+      ctx.beginPath(); ctx.arc(tx, gy - 18 * s, 22 * s, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
+  }
   for (const p of G.proj) {
     const span = Math.abs(p.toX - p.x0) || 1, prog = clamp(Math.abs(p.x - p.x0) / span, 0, 1);
-    const yy = gy - 16 * s - Math.sin(prog * Math.PI) * 18 * s, col = p.side ? COL.indigo : COL.seal;
+    const yy = gy - (p.high ? 50 : 16) * s - Math.sin(prog * Math.PI) * 18 * s, col = p.side ? COL.indigo : COL.seal;
     ctx.save();
-    if (STYLE === 'silhouette') { const a = Math.atan2(-Math.cos(prog * Math.PI) * 18, (p.toX - p.x0) * k / span * 30); ctx.translate(X(p.x), yy); ctx.rotate(p.toX > p.x0 ? a : Math.PI - a); ctx.strokeStyle = COL.ink; ctx.lineWidth = 2 * s; ctx.beginPath(); ctx.moveTo(-6 * s, 0); ctx.lineTo(6 * s, 0); ctx.stroke(); }
-    else { ctx.fillStyle = STYLE === 'overtone' ? col : COL.ink; if (STYLE === 'overtone') { ctx.shadowColor = col; ctx.shadowBlur = 10 * s; } ctx.beginPath(); ctx.arc(X(p.x), yy, 2.6 * s, 0, Math.PI * 2); ctx.fill(); }
+    if (STYLE === 'silhouette') { ctx.translate(X(p.x), yy); ctx.rotate(p.toX >= p.x0 ? -0.3 + prog * 0.6 : Math.PI + 0.3 - prog * 0.6); ctx.strokeStyle = COL.ink; ctx.lineWidth = 2 * s; ctx.beginPath(); ctx.moveTo(-6 * s, 0); ctx.lineTo(6 * s, 0); ctx.stroke(); }
+    else { ctx.fillStyle = STYLE === 'overtone' || p.pierce ? col : COL.ink; if (STYLE === 'overtone') { ctx.shadowColor = col; ctx.shadowBlur = 10 * s; } ctx.beginPath(); ctx.arc(X(p.x), yy, (p.pierce ? 3.2 : 2.6) * s, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   }
   if (STYLE === 'overtone') ctx.globalCompositeOperation = 'lighter';
@@ -970,7 +1218,7 @@ function drawLane() {
   const mm = Math.floor(G.t / 60), ss = String(Math.floor(G.t % 60)).padStart(2, '0');
   ctx.font = `500 ${12 * s}px ${FONT.mono}`; ctx.fillStyle = STYLE === 'silhouette' ? COL.ink : COL['ink-soft']; ctx.textAlign = 'center';
   ctx.fillText('Wave ' + G.wave + ' · ' + mm + ':' + ss, W / 2, 18 * s);
-  if (!G.running && !G.over) { ctx.fillStyle = COL.ink; ctx.font = `${FONT.dw} ${28 * s}px ${FONT.display}`; ctx.fillText('Paused', W / 2, H * 0.45); }
+  if (!G.running && !G.over && $('#floorOv').hidden) { ctx.fillStyle = COL.ink; ctx.font = `${FONT.dw} ${28 * s}px ${FONT.display}`; ctx.fillText('Paused', W / 2, H * 0.45); }
 }
 
 /* ================= Drawing: meter ================= */
@@ -1042,52 +1290,139 @@ function updateReadout(R) {
 }
 
 /* ================= Battle UI ================= */
-function chipHTML(d, cls) { return '<span class="chip ' + (cls || '') + '"><b>' + (d + 1) + '</b><small>' + phonetic(spellDegree(d)) + '</small></span>'; }
-function buildCards() {
-  $('#cards').innerHTML = ORDER.map(k => {
-    const u = U[k];
-    return '<button type="button" class="card" data-u="' + k + '" aria-label="Hear the ' + u.name + ' summon song"><span class="ico">' + ICON[k] + '</span><span class="uname">' + u.name +
-      '</span><span class="chips">' + u.motif.map(d => chipHTML(d)).join('') + '</span><span class="cost kv">' + u.cost + '</span></button>';
-  }).join('');
-  document.querySelectorAll('.card .ico').forEach(el => el.style.color = COL.seal);
+const chipHTML = (n, cls) => '<span class="chip ' + (cls || '') + '"><b>' + degTxt(n) + '</b><small>' + phonetic(spellDegree(n[0])) + '</small></span>';
+const ui = { last: {}, tab: 'units', tabKey: null, padUp: false };
+function rowHTML(pid, icon, name, notes, cost, extra) {
+  return '<button type="button" class="card" data-pid="' + pid + '" data-cost="' + cost + '" aria-label="Hear ' + name + '"><span class="ico">' + ICON[icon] + '</span><span class="nm2"><span class="uname">' + name +
+    '</span><span class="cost kv">' + cost + (extra || '') + '</span></span><span class="chips">' + notes.map(n => chipHTML(n)).join('') + '</span></button>';
 }
-function buildPad() {
-  const semis = FLOOR.steps.concat([12]);
-  $('#pad').innerHTML = semis.map((st, i) => {
-    const d = i % 7;
-    return '<button class="key' + (d === 0 ? ' tonic' : '') + '" data-semi="' + st + '" aria-label="Degree ' + (d + 1) + '"><b>' + (d + 1) + (i === 7 ? '′' : '') + '</b><small>' + phonetic(spellDegree(d)) + '</small></button>';
-  }).join('');
+const PHRASE_NOTES = {};
+function renderTabs() {
+  const turnLive = !!(F().turnEvery && G && G.units.some(u => u.side === 1));
+  const key = ui.tab + '|' + turnLive;
+  if (ui.last.tabs === key) return; ui.last.tabs = key;
+  $('#tabs').innerHTML = [['units', 'Units'], ['turn', 'Turn'], ['powers', 'Powers'], ['drones', 'Drones']].map(([id, nm]) => '<button role="tab" data-tab="' + id + '" aria-selected="' + (ui.tab === id) + '">' + nm + (id === 'turn' && turnLive && ui.tab !== 'turn' ? '<span class="dot"></span>' : '') + '</button>').join('');
 }
-function pulseCard(k, cls) { const el = document.querySelector('.card[data-u="' + k + '"]'); if (!el) return; el.classList.remove('ok', 'fail'); void el.offsetWidth; el.classList.add(cls); }
+function renderTabBody() {
+  let key = ui.tab + '|' + G.tier + '|' + FI + '|' + S.home + '|' + STYLE, html = '';
+  if (ui.tab === 'units') {
+    html = ORDER.map(k => { const notes = phraseNotes(k, G.tier); PHRASE_NOTES['sum-' + k] = notes; return rowHTML('sum-' + k, k, U[k].name + (G.tier > 1 ? ' · tier ' + G.tier : ''), notes, stats(k, G.tier).cost); }).join('')
+      + '<p class="tab-note">Sing the same phrase again while the gold ring lasts to add armor (' + ARMOR_COST + ' mana, up to 3).</p>';
+  } else if (ui.tab === 'turn') {
+    if (!F().turnEvery) html = '<p class="tab-note">Turning starts on floor 2: sing an enemy\'s phrase backwards to make it fight for you.</p>';
+    else {
+      const ph = activePhrases().filter(p => p.kind === 'retro' || p.kind === 'restore');
+      const rows = ph.map(p => {
+        PHRASE_NOTES[p.id] = p.notes;
+        if (p.kind === 'restore') return rowHTML(p.id, 'back', 'Win back ' + U[p.type].name, p.notes, RESTORE_COST);
+        const u = G.units.filter(x => x.side === 1 && x.origSide === 1 && x.type === p.type && x.tier === p.tier && !!x.boss === !!p.boss).sort((a, b) => a.x - b.x)[0];
+        return rowHTML(p.id, 'turn', p.boss ? 'Captain' : 'Turn ' + U[p.type].name + (p.tier > 1 ? ' · tier ' + p.tier : ''), p.notes, u ? turnCost(u) : 35, u && u.armor ? ' · ' + u.armor + ' armor' : '');
+      });
+      key += '|' + rows.join('').length + ph.map(p => p.id).join(',');
+      html = rows.length ? rows.join('') + '<p class="tab-note">A backward phrase cracks one armor layer first, then turns the nearest enemy of that kind.</p>' : '<p class="tab-note">No enemies on the field yet.</p>';
+    }
+  } else if (ui.tab === 'powers') {
+    const pw = F().powers;
+    html = pw.length ? pw.map(id => { PHRASE_NOTES['pow-' + id] = POWERS[id].notes; return rowHTML('pow-' + id, 'power', POWERS[id].name, POWERS[id].notes, POWERS[id].cost); }).join('') + '<p class="tab-note">' + pw.map(id => '<b>' + POWERS[id].name + '</b> ' + POWERS[id].desc).join(' ') + '</p>'
+      : '<p class="tab-note">Powers start on floor 2: Rally (2-3-4) and Wall (5-6-5). Volley (7-1′-3′) joins on floor 3.</p>';
+  } else {
+    html = '<div class="drones">' + DRONES.map((d, i) => '<div class="drow" data-deg="' + i + '"><b>' + (i + 1) + '</b><span><em>' + d.name + '</em> · +' + d.mana + ' mana/s · ' + d.desc + '</span></div>').join('') + '</div>';
+  }
+  if (ui.tabKey !== key) { ui.tabKey = key; $('#tabBody').innerHTML = html; }
+  const cards = document.querySelectorAll('#tabBody .card');
+  const ok = new Set(G.buf.length ? activePhrases().filter(p => prefixOf(p, G.buf)).map(p => p.id) : []);
+  cards.forEach(el => {
+    const pid = el.dataset.pid, pw = pid.startsWith('pow-') ? POWERS[pid.slice(4)] : null;
+    el.classList.toggle('afford', G.mana >= +el.dataset.cost);
+    el.classList.toggle('cool', !!(pw && (G.cd[pw.id] || 0) > G.t));
+    const hit = ok.has(pid); el.querySelectorAll('.chip').forEach((ch, i) => ch.classList.toggle('hit', hit && i < G.buf.length));
+  });
+  const dd = G.drone && G.drone.ok ? G.drone.deg : -1;
+  document.querySelectorAll('#tabBody .drow').forEach(el => el.classList.toggle('on', +el.dataset.deg === dd));
+}
+function pulse(pid, cls) { const el = document.querySelector('#tabBody .card[data-pid="' + pid + '"]'); if (!el) return; el.classList.remove('ok', 'fail'); void el.offsetWidth; el.classList.add(cls); }
 let toastTimer = null;
-function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2200); }
-const ui = { last: {} };
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2600); }
+let bannerTimer = null;
+function banner(title, sub) { const el = $('#banner'); $('b', el).textContent = title; $('span', el).textContent = sub; el.classList.add('on'); clearTimeout(bannerTimer); bannerTimer = setTimeout(() => el.classList.remove('on'), 3800); }
+function buildPad() {
+  const up = ui.padUp ? 1 : 0;
+  const keys = FLOOR.steps.map((st, d) => [d, up]).concat([[0, up + 1]]);
+  $('#pad').innerHTML = keys.map(n => '<button class="key' + (n[0] === 0 ? ' tonic' : '') + '" data-midi="' + midiOf(n) + '" aria-label="Degree ' + degTxt(n) + '"><b>' + degTxt(n) + '</b><small>' + phonetic(spellDegree(n[0])) + '</small></button>').join('')
+    + '<button class="key oct" id="octKey" aria-pressed="' + !!ui.padUp + '">' + (ui.padUp ? 'Oct 2' : 'Oct 1') + '</button>';
+}
 function updateBattleUI() {
   $('#hpYou').style.transform = 'scaleX(' + (G.hp[0] / LANE.baseHp) + ')';
   $('#hpFoe').style.transform = 'scaleX(' + (G.hp[1] / LANE.baseHp) + ')';
   setText($('#manaNum'), String(Math.floor(G.mana)), ui.last, 'mana');
   $('#manaBar').style.transform = 'scaleX(' + (G.mana / G.manaMax) + ')';
-  const hk = G.motif.map(m => m.deg).join(',');
+  setText($('#floorLbl'), 'Floor ' + (FI + 1) + ' · ' + KEY_NAME[FLOOR.tonicPc], ui.last, 'floor');
+  const lo = G.tier > 1 ? TIER_XP[G.tier - 2] : 0, hi = G.tier < 4 ? TIER_XP[G.tier - 1] : lo;
+  setText($('#tierLbl'), G.tier < 4 ? 'Tier ' + G.tier + ' · XP' : 'Tier 4 · max', ui.last, 'tier');
+  $('#xpBar').style.transform = 'scaleX(' + (G.tier < 4 ? clamp((G.xp - lo) / (hi - lo), 0, 1) : 1) + ')';
+  const sm = streakMult();
+  setText($('#streakLbl'), 'Streak ×' + sm.toFixed(1), ui.last, 'streak');
+  $('#streakLbl').classList.toggle('hot', sm >= 1.5);
+  const hk = G.buf.map(degTxt).join(',');
   if (ui.last.heard !== hk) {
     ui.last.heard = hk;
-    $('#heard').innerHTML = G.motif.length ? G.motif.map(m => chipHTML(m.deg, 'hit')).join('') + Array(3 - G.motif.length).fill('<span class="chip ghost"><b>·</b><small>&nbsp;</small></span>').join('')
+    const longest = G.buf.length ? Math.max(G.buf.length, ...activePhrases().filter(p => prefixOf(p, G.buf)).map(p => p.notes.length)) : 0;
+    $('#heard').innerHTML = G.buf.length ? G.buf.map(n => chipHTML(n, 'hit')).join('') + Array(Math.max(0, longest - G.buf.length)).fill('<span class="chip ghost"><b>·</b><small>&nbsp;</small></span>').join('')
       : '<span class="chip ghost"><b>1</b><small>start</small></span>';
-    for (const k of ORDER) {
-      const chips = document.querySelectorAll('.card[data-u="' + k + '"] .chip');
-      const ok = G.motif.length && prefixOk(U[k].motif, G.motif);
-      chips.forEach((ch, i) => ch.classList.toggle('hit', !!ok && i < G.motif.length));
-    }
   }
   const tk = G.trail.map(n => n.txt).join(' ');
   if (ui.last.trail !== tk) { ui.last.trail = tk; $('#trail').innerHTML = G.trail.length ? 'Last notes: ' + G.trail.map(n => '<b class="' + (n.bad ? 'x' : '') + '">' + n.txt + '</b>').join(' ') : 'Last notes: none yet'; }
-  for (const k of ORDER) document.querySelector('.card[data-u="' + k + '"]').classList.toggle('afford', G.mana >= U[k].cost);
   let dl, cls = '';
-  if (G.drone && G.drone.ok) { dl = 'Droning ' + (G.drone.deg + 1) + ' · +' + G.drone.rate.toFixed(1) + ' mana/s · ' + Math.round(G.drone.acc * 100) + '% in tune'; cls = 'on'; }
+  if (G.drone && G.drone.ok) { dl = 'Droning ' + (G.drone.deg + 1) + ' · ' + DRONES[G.drone.deg].name + ' · +' + G.drone.rate.toFixed(1) + ' mana/s · ' + Math.round(G.drone.acc * 100) + '% in tune'; cls = 'on'; }
   else if (G.drone) { dl = G.drone.below ? 'Below home 1 · no mana' : 'Out of key · no mana'; cls = 'warn'; }
-  else dl = 'Hold a note to drone. Droning 1 earns the most mana.';
+  else dl = 'Hold a note to drone. Each degree has its own power (Drones tab).';
   setText($('#droneLine'), dl, ui.last, 'drone');
   if (ui.last.dcls !== cls) { ui.last.dcls = cls; $('#droneLine').className = 'drone-line ' + cls; }
+  renderTabs(); renderTabBody();
 }
+
+/* ================= Floors: intro and flow ================= */
+const NEWS = [
+  ['<b>Drone</b> any note for about a second to earn mana. 1 (Home) earns the most; every other degree trades some mana for a power. See the Drones tab.',
+   '<b>Summon</b> with three notes from your home 1: 1-3-5 Infantry, 1-2-6 Ranged, 1-4-7 Heavy.',
+   '<b>Armor</b>: sing the same phrase again while its gold ring lasts. Each layer soaks damage and blocks one turning.',
+   '<b>Evolve</b>: kills fill your XP bar. Each evolution adds one note to every unit phrase, and only the newest phrase works. Evolutions reset each floor.',
+   '<b>Streak</b>: the longer you go without pressing Reference, the more XP you earn, up to double.'],
+  ['<b>New key: G.</b> Home 1 moves, so press Reference once to hear it.',
+   '<b>The enemy turns your units</b> by singing their phrase backwards. Its notes appear above the target. Armor breaks instead of the unit turning.',
+   '<b>Turn theirs</b>: sing an enemy phrase backwards (Turn tab). <b>Win yours back</b> by singing its phrase forwards.',
+   '<b>Powers</b>: Rally 2-3-4 speeds your army; Wall 5-6-5 blocks the lane before your gate.'],
+  ['<b>New key: D.</b> Home 1 moves again.',
+   '<b>Volley</b> 7-1′-3′ shoots the three nearest enemies through armor.',
+   '<b>The Choir Captain</b> marches out at about 1:50: a tier 3 Heavy with 3 armor layers. Pierce (drone 7) and Volley go through its armor.',
+   'Enemies come armored more often, and some arrive at tier 2.'],
+];
+function showFloorIntro(i) {
+  setFloor(i); ensureAudio();
+  $('#flEyebrow').textContent = 'The Ionian Steps · floor ' + (i + 1) + ' of 3';
+  $('#flTitle').textContent = keyLabel();
+  const h = noteInfo(S.home);
+  $('#flHome').innerHTML = 'Home 1 is <b class="kv">' + pretty(h.name) + h.octNum + '</b> (' + h.phon + ').';
+  $('#flNews').innerHTML = NEWS[i].map(s => '<li>' + s + '</li>').join('');
+  const hear = [['Infantry', phraseNotes('inf', 1)], ['Ranged', phraseNotes('rng', 1)], ['Heavy', phraseNotes('hvy', 1)]];
+  FLOORS[i].powers.forEach(id => hear.push([POWERS[id].name, POWERS[id].notes]));
+  $('#flHear').innerHTML = '<span class="lbl">Hear</span>' + hear.map(([n, notes], j) => '<button class="btn small" data-hear="' + j + '">' + n + ' ' + notes.map(degTxt).join('-') + '</button>').join('');
+  $('#flHear').onclick = e => { const b = e.target.closest('[data-hear]'); if (b) playNotes(hear[+b.dataset.hear][1]); };
+  $('#endOv').hidden = true; $('#floorOv').hidden = false;
+  showScreen('battle'); newGame(); G.running = false; ui.last = {}; ui.tabKey = null; ui.tab = 'units'; buildPad();
+  $('#pad').hidden = S.mic && !store.get('padOpen', false);
+  $('#padToggle').textContent = $('#pad').hidden ? 'Tap pad' : 'Hide pad';
+  $('#flStart').focus();
+}
+$('#flStart').addEventListener('click', () => { $('#floorOv').hidden = true; ensureAudio(); G.running = true; $('#pauseBtn').textContent = 'Pause'; toast(S.mic ? 'Drone 1 to earn mana, then sing 1-3-5' : 'Hold key 1 to drone, then tap 1, 3, 5'); });
+$('#flRef').addEventListener('click', playRef);
+$('#endBtns').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  $('#endOv').hidden = true;
+  if (b.dataset.act === 'next') showFloorIntro(FI + 1);
+  else if (b.dataset.act === 'retry') showFloorIntro(FI);
+  else showScreen('setup');
+});
 
 /* ================= Style switching ================= */
 function buildStylePick(el) {
@@ -1101,11 +1436,11 @@ function applyStyle(name) {
   document.querySelectorAll('.style-pick [data-style]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.style === STYLE)));
   $('#styleDesc').textContent = STYLES[STYLE].desc;
   $('#styleBtn').textContent = 'Style: ' + STYLES[STYLE].label;
-  document.querySelectorAll('.card .ico').forEach(el => el.style.color = COL.seal);
-  readS.last = {}; readB.last = {};
+  readS.last = {}; readB.last = {}; ui.tabKey = null;
 }
 
 /* ================= Setup UI ================= */
+let resumable = false;
 buildStylePick($('#stylePickS'));
 applyStyle(store.get('style', 'ink'));
 const sel = $('#presetSel');
@@ -1114,37 +1449,39 @@ applyPreset(S.preset, S.low != null);
 sel.value = S.preset;
 function refreshLabels() {
   const lowI = noteInfo(S.low), homeI = noteInfo(S.home);
-  $('#lowStatus').innerHTML = 'Lowest note <b class="kv">' + pretty(lowI.name) + lowI.octNum + '</b> · home 1 is <b class="kv">' + pretty(homeI.name) + homeI.octNum + '</b> (' + homeI.phon + ')';
+  $('#lowStatus').innerHTML = 'Lowest note <b class="kv">' + pretty(lowI.name) + lowI.octNum + '</b> · home 1 in ' + KEY_NAME[FLOOR.tonicPc] + ' is <b class="kv">' + pretty(homeI.name) + homeI.octNum + '</b> (' + homeI.phon + ')';
   $('#transNote').textContent = S.trans === 'C' ? '' : 'Names are written for a ' + TRANS[S.trans].label + ' instrument. The game still hears concert pitch.';
   $('#refBtn').textContent = 'Reference · ' + phonetic(spellDegree(0));
   $('#refSetupBtn').textContent = 'Play reference · ' + phonetic(spellDegree(0));
-  const n = d => '<b>' + U[d].motif.map(x => x + 1).join('-') + '</b>';
   $('#howto').innerHTML = [
-    '<b>Drone</b> by holding any note for about a second. Droning 1 earns 10 mana a second and other degrees earn 4. Staying within about 20 cents keeps the full rate.',
-    '<b>Summon</b> with three notes that start on your home 1, ' + label(homeI) + ': ' + n('inf') + ' Infantry (30), ' + n('rng') + ' Ranged (45), ' + n('hvy') + ' Heavy (70). Keep each note under a second, with less than about 2 seconds between notes.',
-    '<b>Reference</b> plays home 1 whenever you press it.',
-    '<b>Win</b> by breaking the enemy gate before they break yours. A wave arrives every 50 seconds.',
+    '<b>Drone</b> by holding a note for about a second. Every degree earns mana and has a power; 1 earns the most.',
+    '<b>Phrases</b> are short note patterns in the floor\'s key, each note under a second, with less than about 2 seconds between notes. Unit phrases start on your home 1, the lowest tonic in your range.',
+    '<b>Armor, turning and evolutions</b> are explained on each floor\'s intro card as they arrive.',
+    '<b>Win</b> a floor by breaking the enemy gate. Lose, and you retry that floor.',
   ].map(s => '<li>' + s + '</li>').join('');
-  buildCards(); buildPad(); ui.last = {};
+  buildPad(); ui.last = {}; ui.tabKey = null;
 }
-refreshLabels();
-if (S.bleedRms != null) $('#bleedStatus').textContent = S.bleedRms > 0 ? 'Last check: the mic heard the speaker. The game ignores its own reference while it plays.' : 'Last check: the mic barely heard the speaker.';
-$('#songRow').insertAdjacentHTML('beforeend', ORDER.map(k => '<button type="button" class="btn small" data-song="' + k + '">' + U[k].name + ' · ' + U[k].motif.map(d => d + 1).join('-') + '</button>').join(''));
-$('#songRow').addEventListener('click', e => { const b = e.target.closest('[data-song]'); if (b) playSong(b.dataset.song); });
-$('#cards').addEventListener('click', e => {
+function buildFloorPick() {
+  const reached = store.get('reached', 0);
+  $('#floorPick').innerHTML = '<span class="lbl">Or start on</span>' + FLOORS.map((f, i) => '<button class="btn small" data-floor="' + i + '">Floor ' + (i + 1) + ' · ' + KEY_NAME[f.pc] + (i <= reached ? '' : ' (not reached yet)') + '</button>').join('');
+}
+$('#floorPick').addEventListener('click', e => { const b = e.target.closest('[data-floor]'); if (b) { resumable = false; showFloorIntro(+b.dataset.floor); } });
+refreshLabels(); buildFloorPick();
+if (S.bleedRms != null) $('#bleedStatus').textContent = S.bleedRms > 0 ? 'Last check: the mic heard the speaker. The game ignores its own notes unless you\'re louder.' : 'Last check: the mic barely heard the speaker.';
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { ui.tab = b.dataset.tab; ui.last.tabs = null; ui.tabKey = null; } });
+$('#tabBody').addEventListener('click', e => {
   const card = e.target.closest('.card'); if (!card) return;
+  const notes = PHRASE_NOTES[card.dataset.pid]; if (!notes) return;
   const chips = card.querySelectorAll('.chip');
-  playSong(card.dataset.u, i => chips.forEach((ch, j) => ch.classList.toggle('play', j === i)));
+  playNotes(notes, { onStep: i => chips.forEach((ch, j) => ch.classList.toggle('play', j === i)) });
 });
 const volEl = $('#vol');
 const showVol = () => { $('#volOut').textContent = Math.round(S.vol / 1.8 * 100) + '%'; };
 volEl.value = S.vol; showVol();
 volEl.addEventListener('input', () => { S.vol = +volEl.value; if (master) master.gain.value = S.vol; store.set('vol', S.vol); showVol(); });
-$('#drumsChk').checked = S.drums;
-$('#drumsChk').addEventListener('change', e => { S.drums = e.target.checked; store.set('drums', S.drums); });
-let resumable = false;
-sel.addEventListener('change', () => { resumable = false; $('#enterBtn').textContent = 'Enter battle'; applyPreset(sel.value, false); store.set('preset', S.preset); store.set('low', S.low); refreshLabels(); });
-
+$('#drumsChk').checked = S.drums; $('#drumsChk').addEventListener('change', e => { S.drums = e.target.checked; store.set('drums', S.drums); });
+$('#songsChk').checked = S.songs; $('#songsChk').addEventListener('change', e => { S.songs = e.target.checked; store.set('songs', S.songs); });
+sel.addEventListener('change', () => { resumable = false; applyPreset(sel.value, false); store.set('preset', S.preset); store.set('low', S.low); refreshLabels(); });
 $('#micBtn').addEventListener('click', async () => {
   const st = $('#micStatus'); st.className = 'status'; st.textContent = 'Asking for the microphone…';
   try {
@@ -1183,58 +1520,49 @@ $('#bleedBtn').addEventListener('click', () => {
     BLEED.active = false; $('#bleedBtn').disabled = false;
     const frac = BLEED.frames ? BLEED.hits / BLEED.frames : 0;
     if (frac < 0.15) { S.bleedRms = 0; st.className = 'status good'; st.textContent = 'The mic barely heard the speaker. Speaker play should work.'; }
-    else { S.bleedRms = BLEED.rmsSum / BLEED.hits; st.className = 'status'; st.textContent = 'The mic heard the speaker on ' + Math.round(frac * 100) + '% of frames. The game will ignore its own reference while it plays. Headphones give the cleanest result.'; }
+    else { S.bleedRms = BLEED.rmsSum / BLEED.hits; st.className = 'status'; st.textContent = 'The mic heard the speaker on ' + Math.round(frac * 100) + '% of frames. The game will ignore its own notes unless you\'re louder. Headphones give the cleanest result.'; }
     store.set('bleedRms', S.bleedRms);
   }, 1700);
 });
 $('#refSetupBtn').addEventListener('click', playRef);
 
 /* ================= Screen flow ================= */
-function showScreen(name) { screen = name; $('#setup').hidden = name !== 'setup'; $('#battle').hidden = name !== 'battle'; }
-function enterBattle() {
-  resumable = false; $('#enterBtn').textContent = 'Enter battle';
-  ensureAudio(); newGame(); ui.last = {}; lane.bg = null;
-  $('#endOv').hidden = true; $('#pauseBtn').textContent = 'Pause';
-  showScreen('battle');
-  $('#pad').hidden = S.mic && !store.get('padOpen', false);
-  $('#padToggle').textContent = $('#pad').hidden ? 'Tap pad' : 'Hide pad';
-  toast(S.mic ? 'Drone 1 to earn mana, then sing 1-3-5' : 'Hold key 1 to drone, then tap 1-3-5');
-}
+function showScreen(name) { screen = name; $('#setup').hidden = name !== 'setup'; $('#battle').hidden = name !== 'battle'; if (name === 'setup') buildFloorPick(); }
 $('#enterBtn').addEventListener('click', () => {
-  if (resumable && G && !G.over) { resumable = false; showScreen('battle'); $('#enterBtn').textContent = 'Enter battle'; return; }
-  enterBattle();
+  if (resumable && G && !G.over) { resumable = false; showScreen('battle'); $('#enterBtn').textContent = 'Enter the dungeon'; return; }
+  showFloorIntro(0);
 });
-$('#againBtn').addEventListener('click', enterBattle);
-$('#toSetupBtn').addEventListener('click', () => { $('#endOv').hidden = true; showScreen('setup'); });
 $('#setupBtn').addEventListener('click', () => {
-  if (G && !G.over) { G.running = false; $('#pauseBtn').textContent = 'Resume'; resumable = true; $('#enterBtn').textContent = 'Back to battle (paused)'; }
+  if (G && !G.over) { G.running = false; $('#pauseBtn').textContent = 'Resume'; resumable = true; $('#enterBtn').textContent = 'Back to floor ' + (FI + 1) + ' (paused)'; }
   showScreen('setup');
 });
-$('#pauseBtn').addEventListener('click', () => { if (!G || G.over) return; G.running = !G.running; $('#pauseBtn').textContent = G.running ? 'Pause' : 'Resume'; });
-$('#refBtn').addEventListener('click', () => { playRef(); if (G) G.stats.refs++; });
+$('#pauseBtn').addEventListener('click', () => { if (!G || G.over || !$('#floorOv').hidden) return; G.running = !G.running; $('#pauseBtn').textContent = G.running ? 'Pause' : 'Resume'; });
+$('#refBtn').addEventListener('click', () => { playRef(); if (G) { G.stats.refs++; G.lastRef = G.t; } });
 $('#styleBtn').addEventListener('click', () => { const nx = STYLE_ORDER[(STYLE_ORDER.indexOf(STYLE) + 1) % STYLE_ORDER.length]; applyStyle(nx); toast('Style: ' + STYLES[nx].label); });
 $('#padToggle').addEventListener('click', () => { const p = $('#pad'); p.hidden = !p.hidden; store.set('padOpen', !p.hidden); $('#padToggle').textContent = p.hidden ? 'Tap pad' : 'Hide pad'; });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.running && !G.over) { G.running = false; $('#pauseBtn').textContent = 'Resume'; } });
 
 const padEl = $('#pad');
 padEl.addEventListener('pointerdown', e => {
+  if (e.target.closest('#octKey')) { ui.padUp = !ui.padUp; buildPad(); return; }
   const k = e.target.closest('.key'); if (!k) return; e.preventDefault();
   try { k.setPointerCapture(e.pointerId); } catch (_) {}
-  k.classList.add('down'); padDown(+k.dataset.semi);
+  k.classList.add('down'); padDown(+k.dataset.midi);
 });
-const padRelease = e => { const k = e.target.closest('.key'); if (!k || !k.classList.contains('down')) return; k.classList.remove('down'); padUp(+k.dataset.semi); };
+const padRelease = e => { const k = e.target.closest('.key'); if (!k || !k.classList.contains('down')) return; k.classList.remove('down'); padUp(+k.dataset.midi); };
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => padEl.addEventListener(ev, padRelease));
 padEl.addEventListener('contextmenu', e => e.preventDefault());
-const KEY_SEMI = { '1':0, '2':2, '3':4, '4':5, '5':7, '6':9, '7':11, '8':12 };
+// keyboard: 1–7 are the degrees, 8 is 1′; Shift raises everything an octave
+const keyMidi = e => { const m = /^Digit([1-8])$/.exec(e.code); if (!m) return null; const d = +m[1] - 1, up = e.shiftKey ? 1 : 0; return d === 7 ? midiOf([0, 1 + up]) : midiOf([d, up]); };
+const heldKeys = {};
 document.addEventListener('keydown', e => {
   if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
-  if (e.key in KEY_SEMI) { e.preventDefault(); padDown(KEY_SEMI[e.key]); const b = padEl.querySelector('[data-semi="' + KEY_SEMI[e.key] + '"]'); if (b) b.classList.add('down'); }
-  else if ((e.key === 'r' || e.key === 'R') && screen === 'battle') { playRef(); if (G) G.stats.refs++; }
+  const m = keyMidi(e);
+  if (m != null) { e.preventDefault(); heldKeys[e.code] = m; padDown(m); }
+  else if ((e.key === 'r' || e.key === 'R') && screen === 'battle') { playRef(); if (G) { G.stats.refs++; G.lastRef = G.t; } }
 });
-document.addEventListener('keyup', e => {
-  if (e.key in KEY_SEMI) { padUp(KEY_SEMI[e.key]); const b = padEl.querySelector('[data-semi="' + KEY_SEMI[e.key] + '"]'); if (b) b.classList.remove('down'); }
-});
+document.addEventListener('keyup', e => { if (heldKeys[e.code] != null) { padUp(heldKeys[e.code]); delete heldKeys[e.code]; } });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { readColors(); lane.bg = null; });
 
 /* ================= Main loop ================= */
@@ -1251,7 +1579,17 @@ function frame() {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.__tonality = { S, IN, U, get G() { return G; }, padDown, padUp, noteInfo, enterBattle, applyStyle };
+
+// test hooks
+window.__tonality = {
+  S, IN, U, get G() { return G; }, noteInfo, applyStyle, activePhrases, phraseNotes, midiOf,
+  sim: {
+    start(i) { showFloorIntro(i); $('#floorOv').hidden = true; G.running = true; },
+    step(dt) { update(dt); },
+    drone(deg) { IN.cur = deg == null ? null : { midi: midiOf([deg, 0]), start: now() - 5000, pad: true, cAbs: 0, cents: 0, drone: true, committed: true }; },
+    fire(id) { const p = activePhrases().find(x => x.id === id); if (p) firePhrase(p); return !!p; },
+  },
+};
 })();
 </script>
 </body>
