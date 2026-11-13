@@ -194,6 +194,11 @@ input[type="range"] { accent-color: var(--gold); min-width: 0; }
 #modal { position: absolute; inset: 0; background: rgba(6, 5, 12, 0.72); display: flex; z-index: 20; }
 #modal .sheet { gap: 0.9rem; }
 .mrow { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+.slrow { flex-wrap: nowrap; gap: 0.6rem; }
+.slrow span:first-child { flex: 0 0 3.6rem; }
+.slrow input { flex: 1; }
+.slrow .num { flex: 0 0 3.6rem; text-align: right; color: var(--dim); font-size: var(--fs-s); }
+#su-mon-meter { background: linear-gradient(90deg, var(--emerald), var(--gold)); }
 .help { display: grid; grid-template-columns: minmax(6.5rem, auto) 1fr; gap: 0.45rem 0.9rem; font-size: var(--fs-s); }
 .help dt { font-weight: 800; color: var(--gold); } .help dd { margin: 0; color: var(--text); }
 #toast { position: absolute; left: 50%; bottom: 5.5rem; transform: translateX(-50%); padding: 0.5rem 0.9rem; font-size: var(--fs-s); font-weight: 700; z-index: 30; max-width: 90%; text-align: center; pointer-events: none; }
@@ -853,6 +858,7 @@ const HELP_ROWS = [
   ['Clash', 'Hold a drone a step or a tritone from the enemy drone and their income drops.'],
   ['Tempo', 'Raise it for a bonus on everything you earn. Auto-tempo pushes it for you while you play cleanly.'],
   ['Flow and pace', 'Flow is all the mana you made plus all you spent. Stars are for pace: flow a minute.'],
+  ['Hear yourself', 'In Settings: your microphone in your own headphones, with reverb, echo and three bands of tone.'],
 ];
 
 // ===== sim: the lane battle, in beat time. No DOM, no audio. =====
@@ -1632,7 +1638,7 @@ const Input = {
     if (!AU.init()) { this.micError = 'noaudio'; return false; }
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: !!speakers, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
+        audio: { echoCancellation: !!speakers, noiseSuppression: false, autoGainControl: false, channelCount: 1, latency: { ideal: 0 } },
       });
     } catch (e) { this.micError = (e && e.name) || 'denied'; return false; }
     await AU.resume();
@@ -1641,15 +1647,18 @@ const Input = {
     this.analyser = c.createAnalyser(); this.analyser.fftSize = 2048; this.analyser.smoothingTimeConstant = 0;
     src.connect(hp); hp.connect(this.analyser);
     this._src = src;
+    Self.attach(src); // the same microphone, on its way to your own ears
     this.buf = new Float32Array(2048);
     this.det = makePitchDetector(c.sampleRate, 2048);
     this.micReady = true;
+    Self.refresh();
     return true;
   },
   stopMic() {
     if (this.stream) for (const tr of this.stream.getTracks()) tr.stop();
     if (this._src) try { this._src.disconnect(); } catch (e) { /* already gone */ }
     this.stream = null; this.micReady = false; this.live = null;
+    Self.refresh();
     if (this.tracker) this.tracker.reset();
   },
   // called every frame
@@ -2000,6 +2009,84 @@ const AU = {
       },
       gain(g, tc) { out.gain.setTargetAtTime(g, c.currentTime, tc || 0.05); },
     };
+  },
+};
+
+// ===== self: hear yourself. The microphone, through a little tone and space, straight to your own ears. =====
+// It taps the same microphone the pitch tracker listens to, and goes to the output on its own path:
+// not through the game's mix, so the music never pumps your sound and pausing never dims it.
+const SPACES = { room: { name: 'Room', sec: 0.7 }, hall: { name: 'Hall', sec: 1.8 }, cathedral: { name: 'Cathedral', sec: 3.6 } };
+const MON_DEFAULTS = { on: false, level: 0.6, reverb: 0.35, echo: 0, space: 'hall', lo: 0, mid: 0, hi: 0 };
+
+const Self = {
+  n: null, irs: {}, space: null, live: false, buf: null,
+
+  build() {
+    if (this.n) return true;
+    if (!AU.ctx) return false;
+    const c = AU.ctx, n = {};
+    const bq = (type, f, q) => { const b = c.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; };
+    n.in = c.createGain();
+    n.hp = bq('highpass', 70, 0.7);                       // rumble and handling noise
+    n.lo = bq('lowshelf', 220); n.mid = bq('peaking', 1100, 0.8); n.hi = bq('highshelf', 4800);
+    n.dry = c.createGain(); n.dry.gain.value = 0;
+    n.send = c.createGain(); n.send.gain.value = 0; n.conv = c.createConvolver();
+    n.esend = c.createGain(); n.esend.gain.value = 0;
+    n.delay = c.createDelay(1); n.delay.delayTime.value = 0.29;
+    n.etone = bq('lowpass', 3200, 0.5); n.fb = c.createGain(); n.fb.gain.value = 0.3;
+    n.lim = c.createDynamicsCompressor();                 // a ceiling, so a hot microphone cannot hurt
+    n.lim.threshold.value = -10; n.lim.knee.value = 8; n.lim.ratio.value = 10; n.lim.attack.value = 0.003; n.lim.release.value = 0.12;
+    n.trim = c.createGain(); n.trim.gain.value = 0.617;   // the compressor adds make-up gain of its own (about 4 dB here); take it back out
+    n.clip = c.createWaveShaper();                        // and a soft ceiling after it, because a compressor overshoots on attacks
+    const curve = new Float32Array(2049);
+    for (let i = 0; i < 2049; i++) { const x = i / 1024 - 1, a = Math.abs(x); curve[i] = Math.sign(x) * (a <= 0.6 ? a : 0.6 + 0.35 * Math.tanh((a - 0.6) / 0.35)); }
+    n.clip.curve = curve; n.clip.oversample = '2x';
+    n.out = c.createGain(); n.out.gain.value = 0;
+    n.meter = c.createAnalyser(); n.meter.fftSize = 1024;
+    n.in.connect(n.hp); n.hp.connect(n.lo); n.lo.connect(n.mid); n.mid.connect(n.hi);
+    n.hi.connect(n.dry); n.dry.connect(n.lim);
+    n.hi.connect(n.send); n.send.connect(n.conv); n.conv.connect(n.lim);
+    n.hi.connect(n.esend); n.esend.connect(n.delay); n.delay.connect(n.etone); n.etone.connect(n.lim);
+    n.etone.connect(n.fb); n.fb.connect(n.delay);
+    n.lim.connect(n.trim); n.trim.connect(n.clip); n.clip.connect(n.out); n.out.connect(c.destination); n.out.connect(n.meter);
+    this.n = n; this.buf = new Float32Array(1024);
+    return true;
+  },
+  attach(src) {
+    if (!this.build()) return;
+    try { src.connect(this.n.in); } catch (e) { /* a source from another context: nothing to hear */ }
+  },
+  // cfg is the saved settings; allowed is false when there is no microphone or the sound is going to speakers
+  apply(cfg, allowed) {
+    if (!this.n) { this.live = false; return; }
+    const n = this.n, t = AU.ctx.currentTime, set = (p, v) => p.setTargetAtTime(v, t, 0.03);
+    if (this.space !== cfg.space) {
+      const key = SPACES[cfg.space] ? cfg.space : 'hall';
+      this.space = cfg.space;
+      n.conv.buffer = this.irs[key] || (this.irs[key] = AU.makeIR(SPACES[key].sec));
+    }
+    set(n.dry.gain, 4 * cfg.level * cfg.level);      // 60% is about what goes in; the top of the slider is for a quiet microphone
+    set(n.send.gain, 3.2 * cfg.reverb * cfg.reverb);
+    set(n.esend.gain, 1.8 * cfg.echo * cfg.echo);
+    set(n.lo.gain, cfg.lo); set(n.mid.gain, cfg.mid); set(n.hi.gain, cfg.hi);
+    this.live = !!(cfg.on && allowed);
+    set(n.out.gain, this.live ? 0.7 : 0);                 // with the ceiling above, never more than about -4 dBFS into the mix
+  },
+  refresh() { this.apply(Save.s.mon, Input.micReady && !Save.s.speakers); },
+  level() { // how loud you are in your own ears right now (rms)
+    if (!this.n || !this.live) return 0;
+    const b = this.buf;
+    this.n.meter.getFloatTimeDomainData(b);
+    let s = 0;
+    for (let i = 0; i < b.length; i++) s += b[i] * b[i];
+    return Math.sqrt(s / b.length);
+  },
+  latencyMs() { // what the browser admits to, input plus output. Null when it will not say.
+    const c = AU.ctx;
+    if (!c || !Input.stream || c.outputLatency == null) return null; // half an answer would read as a small number, and mislead
+    let s = (c.baseLatency || 0) + c.outputLatency;
+    try { const st = Input.stream.getAudioTracks()[0].getSettings(); if (st && st.latency) s += st.latency; } catch (e) { /* not reported */ }
+    return s > 0 ? Math.round(s * 1000) : null;
   },
 };
 
@@ -3417,13 +3504,14 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&
 
 const DEFAULTS = { input: 'touch', inst: 'voice', vrange: 'tenor', lo: 47, hi: 69, a4: 440, tol: 50, strict: false, ear: 0, labels: 'deg', grade: 0, skill: 1, foe: 1, ref: true, accel: false, echo: true, speakers: false, music: 0.6, voice: 0.9, sfx: 0.8, setup: false };
 const newJournal = () => ({ fam: {}, notes: 0, etudes: 0, captures: 0, blessings: 0, cover: {}, methods: {} });
-const Save = { vl: 0, done: {}, levels: {}, seen: {}, journal: newJournal(), s: Object.assign({}, DEFAULTS) };
+const Save = { vl: 0, done: {}, levels: {}, seen: {}, journal: newJournal(), s: Object.assign({}, DEFAULTS, { mon: Object.assign({}, MON_DEFAULTS) }) };
 const SAVE_KEY = 'choir-of-one-v1';
 function loadSave() {
   const d = Store.get(SAVE_KEY, null);
   if (!d) return;
   for (const k of ['vl', 'done', 'levels', 'seen', 'journal']) if (d[k] != null) Save[k] = d[k];
   Save.s = Object.assign({}, DEFAULTS, d.s || {});
+  Save.s.mon = Object.assign({}, MON_DEFAULTS, Save.s.mon || {}); // saves from before you could hear yourself have none
   Save.journal = Object.assign(newJournal(), Save.journal);
 }
 function persist() { Store.set(SAVE_KEY, { vl: Save.vl, done: Save.done, levels: Save.levels, seen: Save.seen, journal: Save.journal, s: Save.s }); }
@@ -3487,11 +3575,12 @@ const UI = {
         const ok = Input.micReady || (await Input.startMic(s.speakers));
         if (!ok) {
           s.input = 'touch'; Input.mode = 'touch';
-          setStatus(Input.micError === 'unsupported' ? 'This browser has no microphone access.' : 'The microphone is not available on this page. If you are viewing it inside Claude, open the downloaded game file in your browser instead; otherwise allow the microphone for this site.', 'bad');
+          setStatus(Input.micError === 'unsupported' ? 'This browser has no microphone access.' : 'The microphone is not available on this page. Inside Claude it is blocked: open the game at its own web address, or the downloaded file, instead. Anywhere else, allow the microphone for this site.', 'bad');
           inp.sync(); persist(); return;
         }
         s.input = 'mic'; Input.mode = 'mic'; App.applyInput();
         setStatus('Listening. Sing or play a note.', 'ok');
+        if (UI.monSay) UI.monSay();
       } else if (v === 'midi') {
         const ok = Input.midiReady || (await Input.startMidi());
         if (!ok) { s.input = 'touch'; Input.mode = 'touch'; setStatus('No MIDI here. This needs a browser with Web MIDI, such as Chrome or Edge, and a page opened directly.', 'bad'); inp.sync(); persist(); return; }
@@ -3529,6 +3618,7 @@ const UI = {
 
     const fl = el('div', 'field'); g.append(fl);
     this.optRow(fl, 'Labels', 'How notes are written on the ladder and the cards.', [{ value: 'deg', label: 'Degrees', small: '1 3 5' }, { value: 'name', label: 'Note names' }, { value: 'sung', label: 'Sung names', small: 'See, Dee, Ee' }], () => s.labels, (v) => { s.labels = v; persist(); App.refreshHud(); });
+    this.monSay = first ? null : this.hearYourself(root);
     this.optRow(root, 'What the clouds carry', 'Every grade has cells by step, by leap and by chord. Higher grades pay more.', [{ value: 0, label: 'Adaptive', small: 'follows how cleanly you play' }, { value: 1, label: 'I', small: 'short and simple' }, { value: 2, label: 'II', small: 'thirds, runs, arpeggios' }, { value: 3, label: 'III', small: 'sevenths, cells, inversions' }], () => s.grade, (v) => { s.grade = v; persist(); App.liveCfg(); });
     const g2 = el('div', 'grid2'); root.append(g2);
     const a = el('div', 'field'), b = el('div', 'field'); g2.append(a, b);
@@ -3541,7 +3631,7 @@ const UI = {
       this.optRow(c2, 'Home note drone', 'A quiet tonic under everything, for your ear.', [{ value: true, label: 'On' }, { value: false, label: 'Off', small: '+10% mana' }], () => s.ref, (v) => { s.ref = v; persist(); App.liveCfg(); });
       this.optRow(c1, 'Dark clouds', 'Echoes: phrases to play back by ear, when nothing is attacking.', [{ value: true, label: 'On' }, { value: false, label: 'Off' }], () => s.echo, (v) => { s.echo = v; persist(); App.liveCfg(); });
       this.optRow(c2, 'Tuning window', 'How far from a note still counts as that note.', [{ value: 50, label: 'Wide' }, { value: 35, label: 'Close' }, { value: 22, label: 'Tight' }], () => s.tol, (v) => { s.tol = v; persist(); App.applyInput(); });
-      this.optRow(c1, 'Sound through', 'Speakers turns on echo cancelling so the game does not hear itself.', [{ value: false, label: 'Headphones' }, { value: true, label: 'Speakers' }], () => s.speakers, async (v) => { s.speakers = v; persist(); if (Input.micReady) { Input.stopMic(); await Input.startMic(v); App.applyInput(); } });
+      this.optRow(c1, 'Sound through', 'Speakers turns on echo cancelling so the game does not hear itself.', [{ value: false, label: 'Headphones' }, { value: true, label: 'Speakers' }], () => s.speakers, async (v) => { s.speakers = v; persist(); if (Input.micReady) { Input.stopMic(); await Input.startMic(v); App.applyInput(); } Self.refresh(); if (UI.monSay) UI.monSay(); });
       const fa = el('div', 'field'); fa.append(el('h3', '', 'Tuning reference'));
       const a4 = el('input'); a4.type = 'number'; a4.min = 430; a4.max = 450; a4.value = s.a4; a4.id = 'su-a4'; a4.setAttribute('aria-label', 'A4 in hertz');
       a4.addEventListener('change', () => { s.a4 = clamp(+a4.value || 440, 430, 450); Theory.a4 = s.a4; persist(); });
@@ -3565,7 +3655,51 @@ const UI = {
       fr.append(bs); root.append(fr);
     }
   },
-  tunerTick() { // the little readout in settings
+  // ---------- hear yourself: the microphone in your own ears, with a little tone and space ----------
+  hearYourself(root) {
+    const s = Save.s, m = s.mon;
+    const note = el('div', 'status'), meter = el('div', 'meter'), bar = el('i'); bar.id = 'su-mon-meter'; meter.append(bar);
+    const say = () => {
+      const ms = Self.latencyMs();
+      note.className = 'status' + (m.on && s.speakers ? ' bad' : '');
+      note.textContent = !m.on ? 'Off.'
+        : s.speakers ? 'Silent while Sound through is set to Speakers, because it would howl.'
+        : !Input.micReady ? 'Waiting for the microphone.'
+        : ms == null ? 'On.'
+        : 'On. About ' + ms + ' ms from the microphone to your ears.' + (ms > 45 ? ' That is enough to feel: turn Level down and lean on the Reverb, which hides the delay.' : '');
+    };
+    const row = this.optRow(root, 'Hear yourself', 'Your microphone in your own headphones, with a little tone and space. Headphones only.', [{ value: false, label: 'Off' }, { value: true, label: 'On' }], () => m.on, async (v) => {
+      if (v && !Input.micReady) {
+        note.className = 'status'; note.textContent = 'Asking for the microphone…';
+        if (!(await Input.startMic(s.speakers))) {
+          m.on = false; persist(); row.sync();
+          note.className = 'status bad'; note.textContent = 'The microphone is not available on this page, so there is nothing to hear.';
+          return;
+        }
+        App.applyInput();
+      }
+      m.on = v; persist(); Self.refresh(); row.sync(); say();
+    });
+    const pct = (v) => Math.round(v * 100) + '%', db = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + ' dB';
+    const slider = (label, key, min, max, step, fmt) => {
+      const r = el('label', 'mrow slrow'), sl = el('input'), val = el('span', 'num', fmt(m[key]));
+      sl.type = 'range'; sl.min = min; sl.max = max; sl.step = step; sl.value = m[key]; sl.id = 'su-mon-' + key;
+      sl.addEventListener('input', () => { m[key] = +sl.value; val.textContent = fmt(m[key]); Self.refresh(); persist(); });
+      r.append(el('span', '', label), sl, val);
+      return r;
+    };
+    const g = el('div', 'grid2'), a = el('div', 'field'), b = el('div', 'field'); g.append(a, b);
+    a.append(slider('Level', 'level', 0, 1, 0.05, pct), slider('Reverb', 'reverb', 0, 1, 0.05, pct), slider('Echo', 'echo', 0, 1, 0.05, pct));
+    b.append(slider('Low', 'lo', -12, 12, 1, db), slider('Mid', 'mid', -12, 12, 1, db), slider('High', 'hi', -12, 12, 1, db));
+    row.field.append(g);
+    this.optRow(row.field, 'Space', null, Object.keys(SPACES).map((k) => ({ value: k, label: SPACES[k].name })), () => m.space, (v) => { m.space = v; persist(); Self.refresh(); });
+    row.field.append(meter, note);
+    say();
+    return say;
+  },
+  tunerTick() { // the little readouts in settings
+    const mm = $('su-mon-meter');
+    if (mm) mm.style.width = Math.min(100, Math.round(Self.level() * 280)) + '%';
     const n = $('su-note');
     if (!n) return;
     const lv = Input.live;
@@ -3898,9 +4032,11 @@ const App = {
   },
   async restoreInput() {
     const s = Save.s;
-    if (s.input === 'mic' && !Input.micReady) { if (await Input.startMic(s.speakers)) { Input.mode = 'mic'; this.applyInput(); } else { UI.toast('No microphone on this page, so tap the ladder or use the keys. The downloaded game file can listen.', 5200); } }
+    if (s.input === 'mic' && !Input.micReady) { if (await Input.startMic(s.speakers)) { Input.mode = 'mic'; this.applyInput(); } else { UI.toast('No microphone on this page, so tap the ladder or use the keys.', 5200); } }
     else if (s.input === 'midi' && !Input.midiReady) { if (await Input.startMidi()) Input.mode = 'midi'; }
     else Input.mode = s.input;
+    // you asked to hear yourself, whatever you play with: that needs the microphone open too
+    if (s.mon.on && !s.speakers && !Input.micReady && (await Input.startMic(s.speakers))) this.applyInput();
   },
   measure() {
     const cv = $('cv').getBoundingClientRect(), st = $('stage').getBoundingClientRect();
@@ -4011,7 +4147,7 @@ const App = {
   storyEnd() { const s = this.story; if (!s) return; this.story = null; Save.seen[s.key] = 1; persist(); s.then(); },
 
   eraseAll() { // start over, without leaving the page
-    const keep = { input: Save.s.input, inst: Save.s.inst, vrange: Save.s.vrange, lo: Save.s.lo, hi: Save.s.hi, music: Save.s.music, voice: Save.s.voice, sfx: Save.s.sfx, speakers: Save.s.speakers };
+    const keep = { input: Save.s.input, inst: Save.s.inst, vrange: Save.s.vrange, lo: Save.s.lo, hi: Save.s.hi, music: Save.s.music, voice: Save.s.voice, sfx: Save.s.sfx, speakers: Save.s.speakers, mon: Save.s.mon };
     Object.assign(Save, { vl: 0, done: {}, levels: {}, seen: {}, journal: newJournal(), s: Object.assign({}, DEFAULTS, keep) });
     persist();
     this.onModalClose = null; $('modal').hidden = true; this.paused = false; this.B = null; this.awake(false);
@@ -4292,7 +4428,7 @@ const App = {
 };
 
 // test hooks, harmless in play
-window.__choir = { App, Save, GFX, AU, Music, Input, LEVELS, MODES, STORY, UI, noteOn, noteOff, stepBattle, midiToFreq,
+window.__choir = { App, Save, GFX, AU, Music, Input, Self, SPACES, LEVELS, MODES, STORY, UI, noteOn, noteOff, stepBattle, midiToFreq,
   sim: { unitCost, captureCost, callOpen, holdMsFor, clashFactor, flowOf, paceOf, starsFor, cloudGrade, PLAYER_MOTIFS, persist } };
 const start = () => App.boot();
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start);
